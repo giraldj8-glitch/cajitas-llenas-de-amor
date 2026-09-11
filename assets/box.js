@@ -1,99 +1,112 @@
 /* =========================================================================
    Cajitas llenas de amor — box.js
-   Parallax con mouse + apertura con confeti + reveal de mensajes.
+   Parallax de la caja con el puntero + apertura (tapa, confeti, mensajes).
    ========================================================================= */
 
 (function () {
   const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const box = document.querySelector('.box');
   const stage = document.querySelector('.box-stage');
-  if (!box || !stage) return;
+  const gift = stage && stage.querySelector('.gift');
+  if (!stage || !gift) return;
 
   const messages = document.querySelector('.messages');
   const empty = document.querySelector('.empty');
-  const hint = document.querySelector('.hint');
-  const hasMessages = messages && messages.querySelectorAll('.message').length > 0;
+  const cards = messages ? messages.querySelectorAll('.message') : [];
+  const target = cards.length ? messages : empty;
 
   let opened = false;
-  let rx = 0, ry = 0, tx = 0, ty = 0, raf = 0;
+  let rx = 0, ry = 0, tx = 0, ty = 0, raf = 0, idle = 0;
 
-  // Parallax — el cubic-bezier del CSS hace la mayor parte del suavizado,
-  // aquí solo animamos las custom properties hacia el target.
+  // --- Parallax -----------------------------------------------------------
+  // El cubic-bezier del CSS suaviza; aquí solo perseguimos el objetivo.
   function tick() {
-    rx += (tx - rx) * 0.12;
-    ry += (ty - ry) * 0.12;
-    box.style.setProperty('--rx', rx.toFixed(2));
-    box.style.setProperty('--ry', ry.toFixed(2));
+    const dx = tx - rx;
+    const dy = ty - ry;
+    rx += dx * 0.09;
+    ry += dy * 0.09;
+    gift.style.setProperty('--rx', rx.toFixed(2));
+    gift.style.setProperty('--ry', ry.toFixed(2));
+
+    // Dormimos el bucle cuando ya no hay movimiento pendiente.
+    if (Math.abs(dx) < 0.02 && Math.abs(dy) < 0.02) {
+      if (++idle > 20) { raf = 0; return; }
+    } else {
+      idle = 0;
+    }
     raf = requestAnimationFrame(tick);
   }
 
-  function onMove(e) {
-    if (opened || REDUCED) return;
-    const r = stage.getBoundingClientRect();
-    tx = -((e.clientY - (r.top + r.height / 2)) / r.height) * 14;
-    ty = ((e.clientX - (r.left + r.width / 2)) / r.width) * 22;
+  function wake() {
+    if (!raf && !REDUCED) { idle = 0; raf = requestAnimationFrame(tick); }
   }
 
-  function onLeave() { if (!opened) { tx = 0; ty = 0; } }
+  function aim(clientX, clientY) {
+    if (REDUCED) return;
+    const r = stage.getBoundingClientRect();
+    const nx = (clientX - (r.left + r.width / 2)) / (r.width / 2);
+    const ny = (clientY - (r.top + r.height / 2)) / (r.height / 2);
+    const clamp = v => Math.max(-1, Math.min(1, v));
+    // Al abrirse la caja bajamos la intensidad para no marear.
+    const k = opened ? 0.35 : 1;
+    tx = -clamp(ny) * 11 * k;
+    ty =  clamp(nx) * 20 * k;
+    wake();
+  }
 
-  function openBox() {
+  stage.addEventListener('pointermove', e => aim(e.clientX, e.clientY), { passive: true });
+  stage.addEventListener('pointerleave', () => { tx = 0; ty = 0; wake(); }, { passive: true });
+
+  // --- Apertura -----------------------------------------------------------
+  function open() {
     if (opened) return;
     opened = true;
-    tx = 0; ty = 0;
+    tx = 0; ty = 0; wake();
 
-    const r = box.getBoundingClientRect();
-    const cx = r.left + r.width / 2;
-    const cy = r.top + r.height / 2;
-
-    box.classList.add('is-open');
+    gift.classList.add('is-open');
     stage.classList.add('is-open');
-    if (hint) hint.classList.add('is-hidden');
+    gift.setAttribute('aria-expanded', 'true');
 
-    // 2 oleadas de confeti para más vistosidad
-    if (window.cajitasConfetti) {
-      window.cajitasConfetti({ x: cx, y: cy, count: 160 });
-      setTimeout(() => {
-        const r2 = box.getBoundingClientRect();
-        window.cajitasConfetti({
-          x: r2.left + r2.width / 2,
-          y: r2.top + r2.height / 2,
-          count: 90
-        });
-      }, 350);
+    const fire = (delay, count) => setTimeout(() => {
+      if (!window.cajitasConfetti) return;
+      const r = gift.getBoundingClientRect();
+      window.cajitasConfetti({
+        x: r.left + r.width / 2,
+        y: r.top + r.height / 2,
+        count
+      });
+    }, delay);
+
+    if (!REDUCED) {
+      fire(420, 150);   // al saltar la tapa
+      fire(780, 90);    // segunda oleada
+      fire(1150, 60);   // cola
+    } else {
+      fire(0, 60);
     }
 
-    const target = hasMessages ? messages : empty;
     if (!target) return;
 
-    if (hasMessages) {
-      messages.querySelectorAll('.message').forEach((el, i) => {
-        el.style.transitionDelay = (220 + i * 110) + 'ms';
-      });
-    }
+    cards.forEach((el, i) => {
+      el.style.transitionDelay = (120 + i * 110) + 'ms';
+    });
 
-    const delay = hasMessages ? 850 : 600;
     setTimeout(() => {
       target.classList.add('is-visible');
       if (!REDUCED) {
-        const top = target.getBoundingClientRect().top + window.scrollY - 60;
+        const top = target.getBoundingClientRect().top + window.scrollY - 80;
         window.scrollTo({ top, behavior: 'smooth' });
       }
-    }, delay);
+    }, REDUCED ? 200 : 1250);
   }
 
-  // Listeners
-  stage.addEventListener('mousemove', onMove, { passive: true });
-  stage.addEventListener('mouseleave', onLeave, { passive: true });
-  box.addEventListener('click', openBox);
-  box.addEventListener('keydown', e => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openBox(); }
+  gift.addEventListener('click', open);
+  gift.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
   });
 
-  // Accesibilidad
-  box.setAttribute('tabindex', '0');
-  box.setAttribute('role', 'button');
-  box.setAttribute('aria-label', 'Abrir la caja y descubrir los mensajes');
-  if (matchMedia('(hover: none)').matches) box.style.cursor = 'pointer';
-
-  if (!REDUCED) raf = requestAnimationFrame(tick);
+  // El contenedor del regalo lo crea gift.js, así que fijamos el rol aquí.
+  gift.setAttribute('role', 'button');
+  gift.setAttribute('tabindex', '0');
+  gift.setAttribute('aria-expanded', 'false');
+  gift.setAttribute('aria-label', 'Abrir el regalo y ver los mensajes');
 })();

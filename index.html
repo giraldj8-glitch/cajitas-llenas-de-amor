@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#000839" />
   <title>Cajitas llenas de amor</title>
-  <meta name="description" content="Una colección de cariños para cada persona del equipo. Toca una caja para descubrir los mensajes que te han dedicado." />
+  <meta name="description" content="Cada persona del equipo tiene un regalo esperándola. Ábrelo y salen los mensajes que le dedicaron sus compañeros." />
 
   <!-- Open Graph -->
   <meta property="og:title" content="Cajitas llenas de amor" />
-  <meta property="og:description" content="Mensajes de reconocimiento para cada persona del equipo." />
+  <meta property="og:description" content="Un regalo 3D para cada persona del equipo, lleno de mensajes de reconocimiento." />
   <meta property="og:type" content="website" />
 
   <!-- Tipografías -->
@@ -20,7 +20,10 @@
     href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
   />
 
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%8E%81%3C/text%3E%3C/svg%3E" />
+
   <link rel="stylesheet" href="./assets/styles.css" />
+  <link rel="stylesheet" href="./assets/box.css" />
 </head>
 <body>
   <main class="scene">
@@ -30,7 +33,7 @@
           <span class="brand__dot" aria-hidden="true"></span>
           <span>Cajitas llenas de amor</span>
         </a>
-        <a class="header__nav" href="https://github.com/" target="_blank" rel="noopener">
+        <a class="header__nav" href="https://github.com/giraldj8-glitch/cajitas-llenas-de-amor" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M12 .5C5.6.5.4 5.7.4 12.1c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.6-1.3-1.6-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.5-.3-5.2-1.3-5.2-5.6 0-1.2.4-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2.9-.3 1.9-.4 2.9-.4s2 .1 2.9.4c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.8.1 3.1.7.8 1.2 1.9 1.2 3.1 0 4.3-2.7 5.3-5.2 5.6.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.6-1.5 7.9-5.8 7.9-10.9C23.6 5.7 18.4.5 12 .5z"/>
           </svg>
@@ -41,7 +44,7 @@
       <section class="hero">
         <span class="hero__eyebrow">Para el equipo, del equipo</span>
         <h1>Cajitas <em>llenas de amor</em></h1>
-        <p>Una colección de cariños para cada persona del equipo. Toca una caja para descubrir los mensajes que le han dedicado.</p>
+        <p>Cada persona del equipo tiene un regalo esperándola. Ábrelo y salen los mensajes que le dedicaron sus compañeros.</p>
       </section>
 
       <section class="grid" data-grid aria-label="Personas del equipo"></section>
@@ -59,6 +62,7 @@
   </main>
 
   <script src="./assets/data.js"></script>
+  <script src="./assets/gift.js"></script>
   <script src="./assets/app.js"></script>
 </body>
 </html>

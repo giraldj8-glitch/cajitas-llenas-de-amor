@@ -4,11 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#000839" />
-  <title>Para ti · Cajitas llenas de amor</title>
-  <meta name="description" content="Tu caja de mensajes del equipo. Toca la caja para descubrir los cariños que te han dedicado." />
+  <title>El equipo te envió un regalo · Cajitas llenas de amor</title>
+  <meta name="description" content="El equipo te envió un regalo. Toca la caja para descubrir los mensajes que te han dedicado." />
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Tu caja de mensajes · Cajitas llenas de amor" />
+  <meta property="og:title" content="El equipo te envió un regalo 🎁" />
   <meta property="og:description" content="Toca la caja y descubre los mensajes que tus compañeros tienen para ti." />
   <meta property="og:type" content="website" />
 
@@ -20,6 +20,8 @@
     href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
   />
 
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%8E%81%3C/text%3E%3C/svg%3E" />
+
   <link rel="stylesheet" href="./assets/styles.css" />
   <link rel="stylesheet" href="./assets/box.css" />
 </head>
@@ -28,63 +30,31 @@
     <div class="shell shell--narrow scene--solo">
       <section class="hero-person">
         <p class="hero-person__greeting" data-persona-greeting>Para ti</p>
-        <h1 data-persona-name>Para <em>ti</em></h1>
+        <h1>El equipo te envió <em>un regalo</em></h1>
         <p class="hero-person__sub" data-persona-sub>Toca la caja para descubrir los mensajes que te han dedicado.</p>
       </section>
 
-      <section class="box-stage" aria-label="Caja con mensajes">
-        <span class="glow" aria-hidden="true"></span>
-        <span class="sparkle" aria-hidden="true"></span>
-        <span class="sparkle" aria-hidden="true"></span>
-        <span class="sparkle" aria-hidden="true"></span>
-        <span class="sparkle" aria-hidden="true"></span>
-        <span class="sparkle" aria-hidden="true"></span>
+      <section class="box-stage" aria-label="Tu regalo">
+        <span class="stage__glow" aria-hidden="true"></span>
+        <span class="stage__floor" aria-hidden="true"></span>
+        <span class="stage__shadow" aria-hidden="true"></span>
+        <span class="stage__beam" aria-hidden="true"></span>
 
-        <div class="box" role="button" tabindex="0" aria-label="Toca para abrir la caja">
-          <div class="face face--front"></div>
-          <div class="face face--back"></div>
-          <div class="face face--right"></div>
-          <div class="face face--left"></div>
-          <div class="face face--top"></div>
-          <div class="face face--bottom"></div>
+        <span class="sparkle sparkle--1" aria-hidden="true"></span>
+        <span class="sparkle sparkle--2" aria-hidden="true"></span>
+        <span class="sparkle sparkle--3" aria-hidden="true"></span>
+        <span class="sparkle sparkle--4" aria-hidden="true"></span>
+        <span class="sparkle sparkle--5" aria-hidden="true"></span>
+        <span class="sparkle sparkle--6" aria-hidden="true"></span>
 
-          <div class="lid">
-            <div class="lid__top">
-              <span class="lid__ribbon-v" aria-hidden="true"></span>
-              <span class="lid__shine" aria-hidden="true"></span>
+        <div data-gift role="button" tabindex="0" aria-label="Abrir el regalo"></div>
 
-              <span class="bow" aria-hidden="true">
-                <span class="bow__loop bow__loop--left"></span>
-                <span class="bow__loop bow__loop--right"></span>
-                <span class="bow__knot"></span>
-                <span class="bow__tail bow__tail--left"></span>
-                <span class="bow__tail bow__tail--right"></span>
-              </span>
-
-              <span class="lid__initials" data-persona-initials>YO</span>
-            </div>
-          </div>
-
-          <span class="box-cta">Toca para abrir</span>
-        </div>
-
-        <div class="hint" role="status" aria-live="polite">
-          <span class="hint__pulse" aria-hidden="true"></span>
-          <span>Toca la caja</span>
-        </div>
+        <span class="gift-cta" aria-hidden="true">Toca para abrir</span>
       </section>
 
-      <section class="messages" data-persona-messages>
-        <h2 class="messages__title" data-persona-messages-title hidden>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
-          <span class="messages__title-text">Mensajes para ti</span>
-          <span class="messages__count" data-persona-messages-count></span>
-        </h2>
-      </section>
+      <section class="messages" data-persona-messages hidden></section>
 
-      <section class="empty" data-persona-empty>
+      <section class="empty" data-persona-empty hidden>
         <span class="empty__icon" aria-hidden="true">💌</span>
         <h2>Tu caja se está llenando de cariño</h2>
         <p>Pronto encontrarás aquí los mensajes que el equipo tiene para ti. Vuelve cuando recibas la notificación ✨</p>
@@ -93,6 +63,7 @@
   </main>
 
   <script src="./assets/data.js"></script>
+  <script src="./assets/gift.js"></script>
   <script src="./assets/app.js"></script>
   <script src="./assets/confetti.js"></script>
   <script src="./assets/box.js"></script>

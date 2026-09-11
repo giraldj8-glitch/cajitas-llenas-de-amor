@@ -1,142 +1,159 @@
 /* =========================================================================
    Cajitas llenas de amor — confetti.js
-   Confeti en canvas sin dependencias. Toma una paleta de colores en CSS
+   Confeti en canvas, sin dependencias. Toma la paleta de las variables CSS
    (--p-color, --p-soft, --c-mint, --c-cyan, --c-purple).
+
+   Hay UN solo bucle y UN solo pozo de partículas: así varias oleadas
+   seguidas se suman en vez de borrarse entre ellas.
    ========================================================================= */
 
 (function () {
   const TAU = Math.PI * 2;
+  const MAX = 700;
 
-  function rand(min, max) { return Math.random() * (max - min) + min; }
-  function pick(arr) { return arr[(Math.random() * arr.length) | 0]; }
+  const rand = (min, max) => Math.random() * (max - min) + min;
+  const pick = arr => arr[(Math.random() * arr.length) | 0];
 
-  function readPalette(root) {
-    const cs = getComputedStyle(root);
-    return [
-      cs.getPropertyValue('--p-color').trim(),
-      cs.getPropertyValue('--p-soft').trim(),
-      cs.getPropertyValue('--c-mint').trim(),
-      cs.getPropertyValue('--c-cyan').trim(),
-      cs.getPropertyValue('--c-purple').trim()
-    ].filter(Boolean);
+  let canvas = null, ctx = null, raf = 0;
+  const pool = [];
+
+  function palette() {
+    const cs = getComputedStyle(document.documentElement);
+    return ['--p-color', '--p-soft', '--c-mint', '--c-cyan', '--c-purple']
+      .map(v => cs.getPropertyValue(v).trim())
+      .filter(Boolean);
   }
 
-  function createCanvas() {
-    let canvas = document.querySelector('.confetti');
+  function ensureCanvas() {
+    if (canvas) return;
+    canvas = document.querySelector('.confetti');
     if (!canvas) {
       canvas = document.createElement('canvas');
       canvas.className = 'confetti';
+      canvas.setAttribute('aria-hidden', 'true');
       document.body.appendChild(canvas);
     }
-    const ctx = canvas.getContext('2d');
-    let dpr = Math.max(1, window.devicePixelRatio || 1);
+    ctx = canvas.getContext('2d');
 
-    function resize() {
-      dpr = Math.max(1, window.devicePixelRatio || 1);
+    const resize = () => {
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
       canvas.width = window.innerWidth * dpr;
       canvas.height = window.innerHeight * dpr;
       canvas.style.width = window.innerWidth + 'px';
       canvas.style.height = window.innerHeight + 'px';
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    }
+    };
     resize();
     window.addEventListener('resize', resize, { passive: true });
-    return { canvas, ctx };
+  }
+
+  function draw(p) {
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, (1 - p.life / p.maxLife) * 2.2);
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rot);
+    // Escalar en X simula el giro del papelito sobre su propio eje.
+    ctx.scale(Math.cos(p.spin) * 0.85 + 0.15, 1);
+    ctx.fillStyle = p.color;
+
+    if (p.shape === 'rect') {
+      ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+    } else if (p.shape === 'circle') {
+      ctx.beginPath();
+      ctx.arc(0, 0, p.size / 2.4, 0, TAU);
+      ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(-p.size, 0);
+      ctx.quadraticCurveTo(0, -p.size / 2, p.size, 0);
+      ctx.quadraticCurveTo(0, p.size / 2, -p.size, 0);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function tick() {
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+    for (let i = pool.length - 1; i >= 0; i--) {
+      const p = pool[i];
+      p.life++;
+      if (p.life > p.maxLife || p.y > window.innerHeight + 60) {
+        pool.splice(i, 1);
+        continue;
+      }
+      p.vy += p.gravity;
+      p.vx *= p.drag;
+      p.vy *= p.drag;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.vr;
+      p.spin += p.vs;
+      draw(p);
+    }
+
+    if (pool.length) {
+      raf = requestAnimationFrame(tick);
+    } else {
+      raf = 0;
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    }
   }
 
   function burst(opts = {}) {
-    const { canvas, ctx } = createCanvas();
-    const palette = readPalette(document.documentElement);
+    ensureCanvas();
+
     const cx = opts.x ?? window.innerWidth / 2;
     const cy = opts.y ?? window.innerHeight / 2;
     const count = opts.count ?? 120;
-    const colors = opts.colors && opts.colors.length ? opts.colors : palette;
-    const particles = [];
+    const colors = (opts.colors && opts.colors.length) ? opts.colors : palette();
+    if (!colors.length) return;
 
-    for (let i = 0; i < count; i++) {
-      const angle = rand(-Math.PI, 0); // hacia arriba
-      const speed = rand(6, 14);
-      particles.push({
-        x: cx + rand(-30, 30),
-        y: cy + rand(-10, 10),
-        vx: Math.cos(angle) * speed * rand(0.6, 1.2),
-        vy: Math.sin(angle) * speed * rand(0.8, 1.4) - rand(2, 6),
-        gravity: 0.18,
-        drag: 0.992,
-        size: rand(6, 11),
+    // Chorro hacia arriba desde la boca de la caja
+    for (let i = 0; i < count && pool.length < MAX; i++) {
+      const angle = rand(-Math.PI * 0.92, -Math.PI * 0.08);
+      const speed = rand(7, 16);
+      pool.push({
+        x: cx + rand(-26, 26),
+        y: cy + rand(-12, 12),
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - rand(2, 7),
+        gravity: 0.19,
+        drag: 0.991,
+        size: rand(6, 12),
         color: pick(colors),
         rot: rand(0, TAU),
-        vr: rand(-0.2, 0.2),
+        vr: rand(-0.22, 0.22),
+        spin: rand(0, TAU),
+        vs: rand(0.06, 0.16),
         life: 0,
-        maxLife: rand(140, 220),
-        shape: Math.random() < 0.35 ? 'rect' : (Math.random() < 0.5 ? 'circle' : 'ribbon')
+        maxLife: rand(150, 240),
+        shape: Math.random() < 0.4 ? 'rect' : (Math.random() < 0.5 ? 'circle' : 'ribbon')
       });
     }
 
-    // confeti lateral para más vistosidad
-    for (let i = 0; i < count / 2; i++) {
-      particles.push({
+    // Lluvia desde arriba, para llenar la pantalla
+    for (let i = 0; i < count / 2 && pool.length < MAX; i++) {
+      pool.push({
         x: rand(0, window.innerWidth),
-        y: -20,
-        vx: rand(-1, 1),
-        vy: rand(1, 3),
-        gravity: 0.05,
-        drag: 0.995,
-        size: rand(6, 10),
+        y: rand(-80, -10),
+        vx: rand(-1.2, 1.2),
+        vy: rand(1.5, 3.5),
+        gravity: 0.045,
+        drag: 0.996,
+        size: rand(5, 10),
         color: pick(colors),
         rot: rand(0, TAU),
-        vr: rand(-0.1, 0.1),
+        vr: rand(-0.12, 0.12),
+        spin: rand(0, TAU),
+        vs: rand(0.04, 0.1),
         life: 0,
-        maxLife: 320,
+        maxLife: 340,
         shape: 'rect'
       });
     }
 
-    let raf;
-    function tick() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      let alive = 0;
-      for (const p of particles) {
-        p.life++;
-        if (p.life > p.maxLife) continue;
-        alive++;
-        p.vy += p.gravity;
-        p.vx *= p.drag;
-        p.vy *= p.drag;
-        p.x += p.vx;
-        p.y += p.vy;
-        p.rot += p.vr;
-
-        const alpha = 1 - (p.life / p.maxLife);
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rot);
-        ctx.fillStyle = p.color;
-        if (p.shape === 'rect') {
-          ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
-        } else if (p.shape === 'circle') {
-          ctx.beginPath();
-          ctx.arc(0, 0, p.size / 2, 0, TAU);
-          ctx.fill();
-        } else {
-          // ribbon
-          ctx.beginPath();
-          ctx.moveTo(-p.size, 0);
-          ctx.quadraticCurveTo(0, -p.size / 2, p.size, 0);
-          ctx.quadraticCurveTo(0, p.size / 2, -p.size, 0);
-          ctx.fill();
-        }
-        ctx.restore();
-      }
-      if (alive > 0) {
-        raf = requestAnimationFrame(tick);
-      } else {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-      }
-    }
-    cancelAnimationFrame(window.__confettiRaf || 0);
-    window.__confettiRaf = requestAnimationFrame(tick);
+    if (!raf) raf = requestAnimationFrame(tick);
   }
 
   window.cajitasConfetti = burst;

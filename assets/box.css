@@ -1,507 +1,724 @@
 /* =========================================================================
    Cajitas llenas de amor — box.css
-   Gift box 3D con esquinas redondeadas + listón + moño. Sin libs.
+   Caja de regalo 3D estilo "clay render": cubo BISELADO de verdad.
+
+   Cada cubo = 6 caras planas + 12 biseles a 45° que redondean las aristas.
+   El cuerpo va abierto por arriba (sin cara superior) y la tapa es otro
+   cubo biselado, un poco más ancho, que se levanta y se aparta al abrir.
+
+   Geometría (cubo de ancho W, alto H, bisel C):
+     · caras      → (W-2C) × (H-2C), a W/2 ó H/2 sobre su normal
+     · biseles    → plano a 45°, a distancia (H+W-2C)/(2√2) sobre su normal
+                    con un corrimiento (W-H)/(2√2) dentro del plano
+     · biseles verticales → a (W-C)/√2, sin corrimiento (planta cuadrada)
    ========================================================================= */
 
-:root {
-  --box: 230px;                              /* arista del cubo */
-  --half: calc(var(--box) / 2);
-  --ribbon: 26px;                            /* ancho de la cinta */
-  --r: 26px;                                 /* border-radius de la caja */
+/* =========================================================================
+   1. La pieza
+   ========================================================================= */
+.gift {
+  /* --- medidas --- */
+  --bw: 214px;                    /* ancho y profundidad del cuerpo  */
+  --bh: 168px;                    /* alto del cuerpo                 */
+  --lip: 12px;                    /* cuánto sobresale la tapa         */
+  --lh: 66px;                     /* alto de la tapa                 */
+  --c: 20px;                      /* tamaño del bisel (lo "redondo") */
+  --lc: 15px;                     /* el de la tapa, que es más baja   */
+  --ribbon: 46px;                 /* ancho del listón                */
+  --lw: calc(var(--bw) + var(--lip) * 2);
+
+  /* --- ángulos: base 3/4 + parallax (--rx/--ry desde JS) --- */
+  --base-rx: -22;
+  --base-ry: -29;
+  --rx: 0;
+  --ry: 0;
+
+  /* --- material mate, iluminado desde arriba-frente-izquierda --- */
+  --s-top:    color-mix(in oklab, var(--p-color) 74%, #ffffff 26%);
+  --s-front:  color-mix(in oklab, var(--p-color) 96%, #ffffff  4%);
+  --s-left:   color-mix(in oklab, var(--p-color) 80%, #000000 20%);
+  --s-right:  color-mix(in oklab, var(--p-color) 55%, #000000 45%);
+  --s-back:   color-mix(in oklab, var(--p-color) 40%, #000000 60%);
+  --s-bottom: color-mix(in oklab, var(--p-color) 26%, #000000 74%);
+  --s-in:     color-mix(in oklab, var(--p-color) 46%, #000000 54%);
+
+  /* listón: casi blanco, con un toque del color suave */
+  --rib:      color-mix(in oklab, var(--p-soft) 10%, #ffffff 90%);
+  --rib-edge: color-mix(in oklab, var(--p-soft) 34%, #ffffff 66%);
+  --rib-dim:  color-mix(in oklab, var(--p-soft) 30%, #000000 70%);
+
+  position: relative;
+  width: var(--bw);
+  height: var(--bh);
+  transform-style: preserve-3d;
+  transform:
+    rotateX(calc((var(--base-rx) + var(--rx)) * 1deg))
+    rotateY(calc((var(--base-ry) + var(--ry)) * 1deg));
+  transition: transform 480ms var(--ease-out);
+  will-change: transform;
 }
 
-/* ---------- Escenario -------------------------------------------------- */
+/* =========================================================================
+   2. Cubo biselado — variables derivadas
+   ========================================================================= */
+.gift__body,
+.gift__lid {
+  position: absolute;
+  transform-style: preserve-3d;
+
+  --c2: calc(var(--c) * 1.41421);                                  /* ancho del bisel */
+  --fw: calc(var(--w) - var(--c) * 2);                             /* cara: ancho     */
+  --fh: calc(var(--h) - var(--c) * 2);                             /* cara: alto      */
+  --ew: calc(var(--w) - var(--c) * 1.45);                          /* bisel: largo H  */
+  --eh: calc(var(--h) - var(--c) * 1.45);                          /* bisel: largo V  */
+  --dv: calc((var(--h) + var(--w) - var(--c) * 2) / 2.82843);      /* bisel: distancia */
+  --ov: calc((var(--w) - var(--h)) / 2.82843);                     /* bisel: corrimiento */
+  --nov: calc(var(--ov) * -1);
+  --dh: calc((var(--w) - var(--c)) / 1.41421);                     /* bisel vertical   */
+  --rh: calc(var(--ribbon) / 2);
+
+  /* Capas de pintura reutilizables.
+     --band / --band-h son el listón; --ao es el sombreado suave de la cara. */
+  --band: linear-gradient(90deg,
+    transparent calc(50% - var(--rh)),
+    var(--rib-edge) calc(50% - var(--rh)),
+    var(--rib) calc(50% - var(--rh) + 6px),
+    var(--rib) calc(50% + var(--rh) - 6px),
+    var(--rib-edge) calc(50% + var(--rh)),
+    transparent calc(50% + var(--rh)));
+
+  --band-h: linear-gradient(0deg,
+    transparent calc(50% - var(--rh)),
+    var(--rib-edge) calc(50% - var(--rh)),
+    var(--rib) calc(50% - var(--rh) + 6px),
+    var(--rib) calc(50% + var(--rh) - 6px),
+    var(--rib-edge) calc(50% + var(--rh)),
+    transparent calc(50% + var(--rh)));
+
+  --ao: radial-gradient(150% 150% at 34% 12%,
+    rgba(255, 255, 255, 0.085) 0%,
+    rgba(255, 255, 255, 0.0) 55%);
+}
+
+.gift__body { --w: var(--bw); --h: var(--bh); inset: 0; }
+
+.gift__lid {
+  --w: var(--lw);
+  --h: var(--lh);
+  --c: var(--lc);
+  left: 50%;
+  top: 0;
+  width: var(--lw);
+  height: var(--lh);
+  margin-left: calc(var(--lw) / -2);
+  transform: translate3d(0, 0, 0);
+  z-index: 3;
+}
+
+/* ---------- Caras ------------------------------------------------------ */
+.face,
+.bv {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background-color: var(--s);
+  backface-visibility: hidden;
+}
+
+.face {
+  width: var(--fw);
+  height: var(--fh);
+  margin-left: calc(var(--fw) / -2);
+  margin-top: calc(var(--fh) / -2);
+  border-radius: calc(var(--c) * 0.30);
+}
+
+.face--front  { background-color: var(--s-front);  background-image: var(--band), var(--ao);
+                transform: translateZ(calc(var(--w) / 2)); }
+.face--back   { background-color: var(--s-back);   background-image: var(--band), var(--ao);
+                transform: rotateY(180deg) translateZ(calc(var(--w) / 2)); }
+.face--right  { background-color: var(--s-right);  background-image: var(--band), var(--ao);
+                transform: rotateY( 90deg) translateZ(calc(var(--w) / 2)); }
+.face--left   { background-color: var(--s-left);   background-image: var(--band), var(--ao);
+                transform: rotateY(-90deg) translateZ(calc(var(--w) / 2)); }
+
+.face--top,
+.face--bottom {
+  height: var(--fw);
+  margin-top: calc(var(--fw) / -2);
+}
+
+/* arriba y abajo el listón se cruza */
+.face--top    { background-color: var(--s-top);
+                background-image: var(--band), var(--band-h), var(--ao);
+                transform: rotateX( 90deg) translateZ(calc(var(--h) / 2)); }
+.face--bottom { background-color: var(--s-bottom);
+                background-image: var(--band), var(--band-h);
+                transform: rotateX(-90deg) translateZ(calc(var(--h) / 2)); }
+
+/* ---------- Biseles -----------------------------------------------------
+   Cada bisel lleva un degradado de la cara A a la cara B: es lo que hace
+   que la arista se lea REDONDA y no como un chaflán plano.
+   ------------------------------------------------------------------------ */
+.bv { border-radius: calc(var(--c2) / 2); }
+
+/* aristas que corren de izquierda a derecha */
+.bv--tf, .bv--tb, .bv--bf, .bv--bb,
+/* aristas que corren de frente a fondo */
+.bv--tl, .bv--tr, .bv--bl, .bv--br {
+  width: var(--ew);
+  height: var(--c2);
+  margin-left: calc(var(--ew) / -2);
+  margin-top: calc(var(--c2) / -2);
+}
+
+.bv--tf { background-image: var(--band), linear-gradient(180deg, var(--s-top), var(--s-front));
+          transform: rotateX(  45deg) translate3d(0, var(--ov),  var(--dv)); }
+.bv--tb { background-image: var(--band), linear-gradient(180deg, var(--s-back), var(--s-top));
+          transform: rotateX( 135deg) translate3d(0, var(--nov), var(--dv)); }
+.bv--bf { background-image: var(--band), linear-gradient(180deg, var(--s-front), var(--s-bottom));
+          transform: rotateX( -45deg) translate3d(0, var(--nov), var(--dv)); }
+.bv--bb { background-image: var(--band), linear-gradient(180deg, var(--s-bottom), var(--s-back));
+          transform: rotateX(-135deg) translate3d(0, var(--ov),  var(--dv)); }
+
+.bv--tr { background-image: var(--band), linear-gradient(180deg, var(--s-top), var(--s-right));
+          transform: rotateZ( -45deg) rotateY(90deg) translate3d(0, var(--ov),  var(--dv)); }
+.bv--tl { background-image: var(--band), linear-gradient(180deg, var(--s-left), var(--s-top));
+          transform: rotateZ(-135deg) rotateY(90deg) translate3d(0, var(--nov), var(--dv)); }
+.bv--br { background-image: var(--band), linear-gradient(180deg, var(--s-right), var(--s-bottom));
+          transform: rotateZ(  45deg) rotateY(90deg) translate3d(0, var(--nov), var(--dv)); }
+.bv--bl { background-image: var(--band), linear-gradient(180deg, var(--s-bottom), var(--s-left));
+          transform: rotateZ( 135deg) rotateY(90deg) translate3d(0, var(--ov),  var(--dv)); }
+
+/* aristas verticales (las 4 esquinas en planta) — el listón no pasa por aquí */
+.bv--lf, .bv--rf, .bv--lb, .bv--rb {
+  width: var(--c2);
+  height: var(--eh);
+  margin-left: calc(var(--c2) / -2);
+  margin-top: calc(var(--eh) / -2);
+}
+
+.bv--rf { background-image: linear-gradient(90deg, var(--s-front), var(--s-right));
+          transform: rotateY(  45deg) translateZ(var(--dh)); }
+.bv--lf { background-image: linear-gradient(90deg, var(--s-left), var(--s-front));
+          transform: rotateY( -45deg) translateZ(var(--dh)); }
+.bv--rb { background-image: linear-gradient(90deg, var(--s-right), var(--s-back));
+          transform: rotateY( 135deg) translateZ(var(--dh)); }
+.bv--lb { background-image: linear-gradient(90deg, var(--s-back), var(--s-left));
+          transform: rotateY(-135deg) translateZ(var(--dh)); }
+
+/* =========================================================================
+   4. Interior (se ve al abrir)
+   ========================================================================= */
+.inner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--w) - var(--c));
+  height: calc(var(--h) - var(--c) * 0.2);
+  margin-left: calc((var(--w) - var(--c)) / -2);
+  margin-top: calc((var(--h) - var(--c) * 0.2) / -2);
+  background: linear-gradient(180deg,
+    color-mix(in oklab, var(--s-in) 55%, #000 45%) 0%,
+    var(--s-in) 100%);
+  box-shadow: inset 0 22px 26px -14px rgba(0, 0, 0, 0.75);
+  backface-visibility: hidden;
+}
+
+.inner--back  { transform: translateZ(calc(var(--w) / -2 + 2px)); filter: brightness(1.55); }
+.inner--front { transform: rotateY(180deg) translateZ(calc(var(--w) / -2 + 2px)); filter: brightness(0.5); }
+.inner--left  { transform: rotateY( 90deg) translateZ(calc(var(--w) / -2 + 2px)); filter: brightness(1.2); }
+.inner--right { transform: rotateY(-90deg) translateZ(calc(var(--w) / -2 + 2px)); filter: brightness(0.72); }
+
+.gift__floor {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--fw);
+  height: var(--fw);
+  margin-left: calc(var(--fw) / -2);
+  margin-top: calc(var(--fw) / -2);
+  background: radial-gradient(ellipse at 50% 34%,
+    color-mix(in oklab, var(--p-color) 34%, #000 66%) 0%,
+    color-mix(in oklab, var(--p-color) 12%, #000 88%) 80%);
+  transform: rotateX(90deg) translateZ(calc((var(--h) / 2 - var(--c)) * -1));
+  backface-visibility: hidden;
+}
+
+/* ---------- Cartitas: salen volando de la caja al abrirla -------------- */
+.note {
+  --ny: 34%;                       /* escondidas dentro de la caja */
+  --nx: 0%;
+  --nrot: 0deg;
+  --nz: 0px;
+  --nscale: 0.8;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--w) * 0.42);
+  height: calc(var(--w) * 0.50);
+  margin-left: calc(var(--w) * -0.21);
+  margin-top: calc(var(--w) * -0.25);
+  padding: calc(var(--w) * 0.07) calc(var(--w) * 0.06);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: calc(var(--w) * 0.035);
+  border-radius: calc(var(--w) * 0.022);
+  background: linear-gradient(155deg, #ffffff 0%, #eef1ff 62%, #d9dffa 100%);
+  box-shadow:
+    0 14px 26px -12px rgba(0, 0, 0, 0.85),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transform:
+    translate(var(--nx), var(--ny))
+    translateZ(var(--nz))
+    rotate(var(--nrot))
+    scale(var(--nscale));
+  transition: transform 1150ms var(--ease-spring), opacity 400ms var(--ease-out);
+  backface-visibility: hidden;
+  z-index: 1;
+}
+
+.note__line {
+  height: calc(var(--w) * 0.016);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--p-color) 30%, #c9d0ee 70%);
+}
+
+.note__line:nth-child(2) { width: 78%; }
+.note__line:nth-child(3) { width: 92%; }
+
+.note__heart {
+  margin-top: calc(var(--w) * 0.03);
+  width: calc(var(--w) * 0.075);
+  height: calc(var(--w) * 0.075);
+  align-self: flex-end;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: var(--p-color);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--p-color) 26%, #fff 74%);
+}
+
+.note--a { --nz: 26px; }
+.note--b { --nz: 34px; }
+.note--c { --nz: 14px; }
+
+.gift.is-open .note--a {
+  --ny: -86%; --nx: -54%; --nrot: -19deg; --nscale: 1;
+  transition-delay: 430ms;
+}
+.gift.is-open .note--b {
+  --ny: -70%; --nx:  56%; --nrot:  17deg; --nscale: 1;
+  transition-delay: 510ms;
+}
+.gift.is-open .note--c {
+  --ny: -116%; --nx: 0%; --nrot: -4deg; --nscale: 1.06;
+  transition-delay: 580ms;
+}
+
+/* ---------- Etiqueta con iniciales ------------------------------------- */
+.tag {
+  position: absolute;
+  left: calc(var(--c) + var(--w) * 0.045);
+  bottom: calc(var(--c) + var(--h) * 0.06);
+  display: grid;
+  place-items: center;
+  padding: calc(var(--w) * 0.028) calc(var(--w) * 0.055);
+  border-radius: 3px 9px 9px 3px;
+  background: linear-gradient(152deg, #fffaf1 0%, #e6dbc5 100%);
+  box-shadow: 0 8px 16px -8px rgba(0, 0, 0, 0.85);
+  transform: translateZ(calc(var(--w) / 2 + 4px)) rotate(-4deg);
+  backface-visibility: hidden;
+  z-index: 2;
+}
+
+.tag__text {
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: calc(var(--w) * 0.058);
+  line-height: 1;
+  letter-spacing: 0.08em;
+  color: #2b2519;
+}
+
+/* =========================================================================
+   5. Moño 3D
+      Espacio local del moño: +x derecha, +y hacia el frente, +z ARRIBA.
+   ========================================================================= */
+.bow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(90deg) translateZ(calc(var(--h) / 2));
+  z-index: 4;
+}
+
+.bow__loop,
+.bow__knot,
+.bow__tail { position: absolute; left: 0; top: 0; }
+
+.bow__loop {
+  width: calc(var(--w) * 0.30);
+  height: calc(var(--w) * 0.36);
+  margin-left: calc(var(--w) * -0.15);
+  margin-top: calc(var(--w) * -0.18);
+  border-radius: 52% 48% 22% 78% / 62% 70% 30% 38%;
+  background:
+    radial-gradient(ellipse at 34% 22%, #ffffff 0%, transparent 62%),
+    linear-gradient(150deg, var(--rib) 0%, var(--rib-edge) 62%,
+      color-mix(in oklab, var(--p-soft) 42%, #ffffff 58%) 100%);
+  box-shadow:
+    inset -5px -9px 20px rgba(0, 0, 0, 0.14),
+    inset 0 -14px 16px -10px color-mix(in oklab, var(--p-soft) 55%, #000 45%),
+    0 14px 20px -12px rgba(0, 0, 0, 0.75);
+  overflow: hidden;
+}
+
+/* el doblez de la cinta al entrar al nudo */
+.bow__loop::after {
+  content: "";
+  position: absolute;
+  left: -18%;
+  bottom: -34%;
+  width: 90%;
+  height: 72%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 0%,
+    color-mix(in oklab, var(--p-soft) 46%, #000 54%) 0%,
+    transparent 72%);
+  opacity: 0.34;
+}
+
+.bow__loop--right::after { left: auto; right: -18%; }
+
+.bow__loop--left {
+  transform:
+    rotateZ(-22deg)                        /* abre hacia la izquierda */
+    rotateX(-74deg)                        /* se para sobre la tapa   */
+    translate(calc(var(--w) * -0.115), calc(var(--w) * -0.155))
+    rotate(-19deg);
+}
+
+.bow__loop--right {
+  border-radius: 48% 52% 78% 22% / 70% 62% 38% 30%;
+  transform:
+    rotateZ(22deg)
+    rotateX(-74deg)
+    translate(calc(var(--w) * 0.115), calc(var(--w) * -0.155))
+    rotate(19deg);
+}
+
+.bow__knot {
+  width: calc(var(--w) * 0.19);
+  height: calc(var(--w) * 0.165);
+  margin-left: calc(var(--w) * -0.095);
+  margin-top: calc(var(--w) * -0.0825);
+  border-radius: 46% 54% 50% 50% / 54% 46% 54% 46%;
+  background:
+    radial-gradient(circle at 34% 28%, #ffffff 0%, transparent 56%),
+    linear-gradient(152deg, var(--rib) 0%, var(--rib-edge) 100%);
+  box-shadow:
+    inset -3px -5px 12px rgba(0, 0, 0, 0.18),
+    0 8px 14px -7px rgba(0, 0, 0, 0.8);
+  transform: rotateX(-72deg) translateY(calc(var(--w) * -0.035)) translateZ(calc(var(--w) * 0.045));
+  z-index: 3;
+}
+
+.bow__tail {
+  width: calc(var(--w) * 0.105);
+  height: calc(var(--w) * 0.40);
+  margin-left: calc(var(--w) * -0.0525);
+  border-radius: 4px 4px 46% 46%;
+  background: linear-gradient(180deg,
+    var(--rib) 0%,
+    var(--rib-edge) 58%,
+    color-mix(in oklab, var(--p-soft) 46%, #ffffff 54%) 100%);
+  box-shadow: 0 8px 14px -9px rgba(0, 0, 0, 0.85);
+}
+
+.bow__tail--left  { transform: rotateZ(-62deg) rotateX(-12deg) translateY(calc(var(--w) * 0.02)) translateZ(2px); }
+.bow__tail--right { transform: rotateZ( 62deg) rotateX(-12deg) translateY(calc(var(--w) * 0.02)) translateZ(2px); }
+
+/* =========================================================================
+   6. Apertura
+   ========================================================================= */
+.gift.is-open .gift__lid {
+  animation: lidOff 1500ms var(--ease-out) forwards;
+}
+
+@keyframes lidOff {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  38% {
+    transform: translate3d(0, calc(var(--bh) * -0.95), 0) rotateZ(-5deg);
+  }
+  100% {
+    /* Nota: con la caja girada -29°, empujar la tapa en -Z la manda a la
+       derecha Y hacia el fondo — por eso se ve más pequeña y no estorba. */
+    transform:
+      translate3d(calc(var(--lw) * 0.06), calc(var(--bh) * -0.76), calc(var(--lw) * -0.42))
+      rotateZ(-15deg) rotateX(-17deg) rotateY(-9deg);
+  }
+}
+
+.gift.is-open { cursor: default; }
+
+/* =========================================================================
+   7. Escenario
+   ========================================================================= */
 .box-stage {
   position: relative;
   display: grid;
   place-items: center;
   width: 100%;
-  height: clamp(440px, 72vh, 640px);
-  /* perspective más baja = más drama 3D (1400 era casi plano) */
-  perspective: 900px;
-  perspective-origin: 50% 28%;
-  transform-style: preserve-3d;
+  height: clamp(430px, 60vh, 545px);
+  perspective: 1150px;
+  perspective-origin: 50% 44%;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-  margin: 24px 0;
+  margin: 4px 0 clamp(8px, 2vw, 20px);
 }
 
-.box-stage::before {
-  /* suelo con líneas de perspectiva */
-  content: "";
+.box-stage .gift {
+  cursor: pointer;
+  z-index: 2;
+  animation: giftFloat 6s var(--ease-in-out) infinite;
+}
+
+@keyframes giftFloat {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -15px; }
+}
+
+.box-stage .gift:active { scale: 0.98; }
+
+/* Piso en perspectiva */
+.stage__floor {
   position: absolute;
-  bottom: 6%;
   left: 50%;
-  width: 75%;
-  max-width: 560px;
-  height: 90px;
+  bottom: 11%;
+  width: min(80%, 580px);
+  aspect-ratio: 3 / 1;
+  margin-left: min(-40%, -290px);
+  transform: rotateX(74deg);
   border-radius: 50%;
   background:
-    linear-gradient(transparent 49%, rgba(255,255,255,0.10) 50%, transparent 51%) 0 0 / 100% 18px,
-    linear-gradient(90deg, transparent 49%, rgba(255,255,255,0.10) 50%, transparent 51%) 0 0 / 18px 100%,
-    radial-gradient(ellipse at center, rgba(0, 8, 57, 0.6), transparent 70%);
-  transform: translateX(-50%) rotateX(72deg);
-  z-index: 0;
+    repeating-linear-gradient(0deg,  rgba(255,255,255,0.075) 0 1px, transparent 1px 28px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.075) 0 1px, transparent 1px 28px);
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 6%, transparent 66%);
+          mask-image: radial-gradient(ellipse at center, #000 6%, transparent 66%);
+  opacity: 0.8;
   pointer-events: none;
-  opacity: 0.7;
+  z-index: 0;
 }
 
-.box-stage::after {
-  /* sombra de contacto */
-  content: "";
+/* Sombra de contacto */
+.stage__shadow {
   position: absolute;
-  bottom: 10%;
   left: 50%;
-  width: 70%;
-  max-width: 500px;
-  height: 60px;
+  bottom: 15%;
+  width: min(44%, 290px);
+  height: 44px;
+  margin-left: min(-22%, -145px);
   border-radius: 50%;
-  background: radial-gradient(closest-side, var(--p-color), transparent 70%);
-  filter: blur(30px);
-  transform: translateX(-50%);
-  z-index: 0;
+  background: radial-gradient(closest-side,
+    color-mix(in oklab, var(--p-color) 65%, #000 35%) 0%, transparent 74%);
+  filter: blur(20px);
+  opacity: 0.9;
   pointer-events: none;
-  opacity: 0.5;
+  z-index: 0;
   transition: opacity var(--t-slow) var(--ease-out), filter var(--t-slow) var(--ease-out);
 }
 
-.box-stage.is-open::after { opacity: 0.95; filter: blur(40px); }
+.box-stage.is-open .stage__shadow { opacity: 1; filter: blur(28px); }
 
-.glow {
+/* Halo detrás */
+.stage__glow {
   position: absolute;
-  top: 16%;
   left: 50%;
-  width: 75%;
-  max-width: 500px;
-  height: 340px;
+  top: 18%;
+  width: min(74%, 500px);
+  height: 330px;
+  margin-left: min(-37%, -250px);
   border-radius: 50%;
-  background: radial-gradient(closest-side, var(--p-color), transparent 70%);
-  filter: blur(56px);
-  transform: translateX(-50%);
-  opacity: 0.18;
-  z-index: 0;
+  background: radial-gradient(closest-side, var(--p-color), transparent 72%);
+  filter: blur(62px);
+  opacity: 0.24;
   pointer-events: none;
-  transition: opacity var(--t-slow) var(--ease-out);
+  z-index: 0;
+  transition: opacity 900ms var(--ease-out);
 }
 
-.box-stage.is-open .glow { opacity: 0.32; }
+.box-stage.is-open .stage__glow { opacity: 0.45; }
 
-/* Sparkles (estrellas brillantes alrededor) */
+/* Haz de luz al abrir */
+.stage__beam {
+  position: absolute;
+  left: 50%;
+  top: 14%;
+  width: min(50%, 320px);
+  height: 300px;
+  margin-left: min(-25%, -160px);
+  border-radius: 50% 50% 46% 46%;
+  background: radial-gradient(ellipse at 50% 100%,
+    #ffffff 0%,
+    color-mix(in oklab, var(--p-soft) 55%, transparent) 34%,
+    transparent 70%);
+  filter: blur(16px);
+  opacity: 0;
+  transform: scaleY(0.35);
+  transform-origin: 50% 100%;
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: screen;
+  transition: opacity 700ms var(--ease-out) 350ms, transform 1000ms var(--ease-out) 350ms;
+}
+
+.box-stage.is-open .stage__beam { opacity: 0.5; transform: scaleY(1); }
+
+/* Destellos */
 .sparkle {
   position: absolute;
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: var(--p-color);
-  box-shadow: 0 0 8px var(--p-color), 0 0 16px var(--p-color);
+  background: #fff;
+  box-shadow: 0 0 8px var(--p-soft), 0 0 18px var(--p-color);
   pointer-events: none;
   z-index: 1;
-  animation: sparkle 2.4s var(--ease-in-out) infinite;
+  animation: sparkle 3s var(--ease-in-out) infinite;
 }
 
-.sparkle:nth-child(2) { top: 22%; left: 28%; animation-delay: 0s; }
-.sparkle:nth-child(3) { top: 30%; right: 22%; animation-delay: 0.6s; width: 3px; height: 3px; }
-.sparkle:nth-child(4) { top: 18%; right: 32%; animation-delay: 1.1s; }
-.sparkle:nth-child(5) { bottom: 28%; left: 24%; animation-delay: 1.6s; width: 3px; height: 3px; }
-.sparkle:nth-child(6) { bottom: 30%; right: 28%; animation-delay: 0.3s; }
+.sparkle--1 { top: 26%; left: 21%;  animation-delay: 0s; }
+.sparkle--2 { top: 33%; right: 17%; animation-delay: 0.8s; width: 3px; height: 3px; }
+.sparkle--3 { top: 15%; right: 31%; animation-delay: 1.5s; }
+.sparkle--4 { bottom: 28%; left: 16%; animation-delay: 2.1s; width: 3px; height: 3px; }
+.sparkle--5 { bottom: 33%; right: 22%; animation-delay: 0.4s; }
+.sparkle--6 { top: 48%; left: 9%;   animation-delay: 2.6s; width: 3px; height: 3px; }
 
 @keyframes sparkle {
-  0%, 100% { opacity: 0; transform: scale(0.6); }
-  50%      { opacity: 1; transform: scale(1.2); }
+  0%, 100% { opacity: 0; transform: scale(0.5); }
+  50%      { opacity: 1; transform: scale(1.25); }
 }
 
-/* ---------- El cubo ---------------------------------------------------- */
-.box {
-  position: relative;
-  width: var(--box);
-  height: var(--box);
-  transform-style: preserve-3d;
-  transform:
-    rotateX(calc(var(--rx, 0) * 1deg))
-    rotateY(calc(var(--ry, 0) * 1deg));
-  transition: transform 600ms var(--ease-out);
-  will-change: transform;
-  cursor: pointer;
-  animation: float 4.8s var(--ease-in-out) infinite;
-  z-index: 1;
-}
-
-.box:active {
-  /* Incluye las rotaciones para no romper el parallax al hacer click. */
-  transform:
-    rotateX(calc(var(--rx, 0) * 1deg))
-    rotateY(calc(var(--ry, 0) * 1deg))
-    scale(0.985);
-}
-
-@keyframes float {
-  0%, 100% { translate: 0 0; }
-  50%      { translate: 0 -18px; }
-}
-
-/* ---------- Caras (6 lados) -------------------------------------------- */
-.face {
+/* Llamado a la acción */
+.gift-cta {
   position: absolute;
-  inset: 0;
-  border-radius: var(--r);
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.28) 0%, transparent 55%),
-    linear-gradient(180deg, var(--p-color) 0%, color-mix(in oklab, var(--p-color) 70%, #000 30%) 100%);
-  border: 1px solid rgba(255,255,255,0.12);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.30),
-    inset 0 -2px 0 rgba(0,0,0,0.18),
-    inset 0 0 50px rgba(0,0,0,0.12);
-  backface-visibility: hidden;  /* ponytail: evita caras superpuestas
-                                   al rotar (z-fighting) */
-}
-
-/* Cintas cruzadas (pintadas en cada cara) */
-.face::before,
-.face::after {
-  content: "";
-  position: absolute;
-  background:
-    linear-gradient(90deg,
-      color-mix(in oklab, var(--p-soft) 50%, #000 50%) 0%,
-      var(--p-soft) 50%,
-      color-mix(in oklab, var(--p-soft) 50%, #000 50%) 100%);
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.22),
-    inset 0 4px 4px rgba(255,255,255,0.18),
-    inset 0 -4px 4px rgba(0,0,0,0.30);
-  pointer-events: none;
-}
-
-.face::before { /* vertical */
-  top: 0; bottom: 0; left: 50%;
-  width: var(--ribbon);
-  transform: translateX(-50%);
-}
-
-.face::after { /* horizontal */
-  left: 0; right: 0; top: 50%;
-  height: var(--ribbon);
-  transform: translateY(-50%);
-}
-
-.face--front  { transform: translateZ(var(--half)); }
-.face--back   { transform: rotateY(180deg) translateZ(var(--half)); }
-.face--right  { transform: rotateY( 90deg) translateZ(var(--half)); }
-.face--left   { transform: rotateY(-90deg) translateZ(var(--half)); }
-.face--top {
-  transform: rotateX( 90deg) translateZ(var(--half));
-  background: color-mix(in oklab, var(--p-color) 75%, #000 25%);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
-}
-.face--bottom {
-  transform: rotateX(-90deg) translateZ(var(--half));
-  background: color-mix(in oklab, var(--p-color) 50%, #000 50%);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
-}
-.face--top::before,
-.face--top::after,
-.face--bottom::before,
-.face--bottom::after { opacity: 0.35; }
-
-/* ---------- Tapa (elevada para que se distinga de la base) ------------- */
-.lid {
-  position: absolute;
-  inset: 0;
-  transform-style: preserve-3d;
-  transform-origin: 50% 0%;
-  /* +8px para que se NOTE que la tapa está encima de la base */
-  transform: translateZ(calc(var(--half) + 8px)) rotateX(0deg);
-  transition: transform 900ms var(--ease-spring);
-  z-index: 3;
-  border-radius: var(--r);
-}
-
-.lid__top {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.50) 0%, transparent 55%),
-    linear-gradient(180deg,
-      color-mix(in oklab, var(--p-color) 95%, #fff 5%) 0%,
-      var(--p-color) 40%,
-      color-mix(in oklab, var(--p-color) 70%, #000 30%) 100%);
-  /* borde más marcado para que se distinga del cubo */
-  border: 1.5px solid rgba(255,255,255,0.30);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.50),
-    inset 0 -2px 0 rgba(0,0,0,0.20),
-    /* sombra fuerte ABAJO que crea el efecto de "tapa elevada" */
-    0 14px 24px -8px rgba(0,0,0,0.7),
-    0 4px 8px -2px rgba(0,0,0,0.4),
-    0 0 0 1px rgba(0,0,0,0.10);
-}
-
-/* Cruz de cintas sobre la tapa: horizontal (::after) y vertical (elemento HTML) */
-.lid__top::after {
-  content: "";
-  position: absolute;
-  left: 0; right: 0; top: 50%;
-  height: var(--ribbon);
-  transform: translateY(-50%);
-  background:
-    linear-gradient(180deg,
-      color-mix(in oklab, var(--p-soft) 50%, #000 50%) 0%,
-      var(--p-soft) 50%,
-      color-mix(in oklab, var(--p-soft) 50%, #000 50%) 100%);
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.22),
-    inset 0 4px 4px rgba(255,255,255,0.18),
-    inset 0 -4px 4px rgba(0,0,0,0.30);
-}
-
-.lid__ribbon-v {
-  position: absolute;
-  inset: 0;
-  width: var(--ribbon);
   left: 50%;
-  transform: translateX(-50%);
-  background:
-    linear-gradient(90deg,
-      color-mix(in oklab, var(--p-soft) 50%, #000 50%) 0%,
-      var(--p-soft) 50%,
-      color-mix(in oklab, var(--p-soft) 50%, #000 50%) 100%);
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.22),
-    inset 4px 0 4px rgba(255,255,255,0.18),
-    inset -4px 0 4px rgba(0,0,0,0.30);
-  z-index: 2;
-}
-
-.lid__initials {
-  position: absolute;
-  top: 10px;
-  right: 14px;
-  font-family: var(--f-display);
-  font-size: 11px;
-  font-weight: 600;
-  color: rgba(255,255,255,0.55);
-  letter-spacing: 0.10em;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-  z-index: 1;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background: rgba(0, 0, 0, 0.18);
-  backdrop-filter: blur(4px);
-}
-
-/* Shine bar: destello diagonal que pasa por la tapa cada ~4s */
-.lid__shine {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 3;
-  background: linear-gradient(
-    115deg,
-    transparent 35%,
-    rgba(255, 255, 255, 0.35) 50%,
-    transparent 65%
-  );
-  background-size: 200% 200%;
-  background-position: 200% 0;
-  animation: shine 4.5s var(--ease-in-out) infinite;
-  mix-blend-mode: screen;
-}
-
-@keyframes shine {
-  0%   { background-position: 200% 0; }
-  60%  { background-position: -100% 0; }
-  100% { background-position: -100% 0; }
-}
-
-.box.is-open .lid__shine { animation: none; opacity: 0; }
-
-/* ---------- Moño (lazos ovalados y prominentes) ------------------------- */
-.bow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 200px;
-  height: 130px;
-  transform: translate(-50%, -50%);
-  z-index: 5;
-  pointer-events: none;
-  filter: drop-shadow(0 8px 14px rgba(0,0,0,0.50));
-}
-
-.bow__loop {
-  position: absolute;
-  top: 50%;
-  width: 78px;
-  height: 54px;
-  /* forma ovalada, no círculo perfecto — más "lazo" menos "bola" */
-  background:
-    radial-gradient(ellipse at 35% 30%,
-      color-mix(in oklab, var(--p-soft) 95%, #fff 5%) 0%,
-      var(--p-soft) 55%,
-      color-mix(in oklab, var(--p-soft) 40%, #000 60%) 100%);
-  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-  box-shadow:
-    inset 0 0 0 2px rgba(255,255,255,0.40),
-    inset 8px 4px 14px rgba(255,255,255,0.35),
-    inset -8px -6px 18px rgba(0,0,0,0.30);
-  transform: translateY(-50%);
-}
-
-.bow__loop--left  { left: 4px;  transform: translateY(-50%) rotate(-18deg); }
-.bow__loop--right { right: 4px; transform: translateY(-50%) rotate( 18deg); }
-
-.bow__loop::after {
-  content: "";
-  position: absolute;
-  top: 14%;
-  left: 18%;
-  width: 35%;
-  height: 26%;
-  background: rgba(255,255,255,0.70);
-  border-radius: 50%;
-  filter: blur(1.5px);
-}
-
-.bow__knot {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 36px;
-  height: 40px;
-  transform: translate(-50%, -50%);
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.75), transparent 50%),
-    var(--p-soft);
-  border-radius: 8px;
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.45),
-    inset 0 -4px 8px rgba(0,0,0,0.30);
-  z-index: 2;
-}
-
-.bow__tail {
-  position: absolute;
-  bottom: -28px;
-  width: 24px;
-  height: 56px;
-  background:
-    linear-gradient(180deg,
-      var(--p-soft) 0%,
-      color-mix(in oklab, var(--p-soft) 55%, #000 45%) 100%);
-  border-radius: 2px 2px 22px 22px;
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.22),
-    inset -2px 0 6px rgba(0,0,0,0.28);
-  z-index: 1;
-}
-
-.bow__tail--left  { left: calc(50% - 30px); transform: rotate(-14deg) skewY(-8deg); }
-.bow__tail--right { left: calc(50% + 6px);  transform: rotate( 14deg) skewY( 8deg); }
-
-/* ---------- Apertura --------------------------------------------------- */
-.box.is-open .lid {
-  transform: translateZ(calc(var(--half) + 8px)) rotateX(-160deg);
-}
-
-.box.is-open {
-  animation: openGlow 1.4s var(--ease-in-out) forwards;
-}
-
-@keyframes openGlow {
-  0%   { translate: 0 0; }
-  40%  { translate: 0 -12px; }
-  100% { translate: 0 -4px; }
-}
-
-.box.is-open .lid__top {
-  animation: lidShake 1.2s var(--ease-in-out);
-}
-
-@keyframes lidShake {
-  0%   { transform: translateZ(0) rotate(0); }
-  20%  { transform: translateZ(0) rotate(-3deg); }
-  40%  { transform: translateZ(0) rotate(3deg); }
-  60%  { transform: translateZ(0) rotate(-1.5deg); }
-  100% { transform: translateZ(0) rotate(0); }
-}
-
-.box.is-open .bow {
-  animation: bowPop 1.1s var(--ease-spring);
-}
-
-@keyframes bowPop {
-  0%   { scale: 1; }
-  35%  { scale: 1.22; }
-  60%  { scale: 0.94; }
-  100% { scale: 1; }
-}
-
-/* ---------- CTA "Toca para abrir" ------------------------------------- */
-.box-cta {
-  position: absolute;
-  top: 105%;
-  left: 50%;
+  bottom: 1%;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
+  gap: 9px;
+  padding: 10px 20px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: #fff;
+  background: rgba(5, 7, 26, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(8px);
+  color: rgba(255, 255, 255, 0.9);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  white-space: nowrap;
   pointer-events: none;
   z-index: 5;
   transform: translateX(-50%);
   transition: opacity var(--t-base) var(--ease-out), transform var(--t-base) var(--ease-out);
-  white-space: nowrap;
 }
 
-.box-cta::before {
+.gift-cta::before {
   content: "";
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: var(--p-color);
   box-shadow: 0 0 10px var(--p-color);
-  animation: pulse 1.6s var(--ease-in-out) infinite;
+  animation: pulse 1.8s var(--ease-in-out) infinite;
 }
 
-.box.is-open .box-cta { opacity: 0; transform: translateX(-50%) translateY(8px); }
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50%      { transform: scale(1.5); opacity: 0.5; }
-}
+.box-stage.is-open .gift-cta { opacity: 0; transform: translateX(-50%) translateY(10px); }
 
 .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
 
-/* ---------- Responsive ----------------------------------------------- */
-@media (max-width: 720px) {
-  :root { --box: 180px; --ribbon: 20px; --r: 22px; }
-  .bow { width: 130px; height: 86px; }
-  .bow__loop { width: 48px; height: 48px; }
-  .bow__knot { width: 30px; height: 32px; }
-  .bow__tail { width: 18px; height: 40px; bottom: -16px; }
+/* =========================================================================
+   8. Caja mini (tarjetas de la landing)
+   ========================================================================= */
+.gift-mini {
+  position: relative;
+  width: 86px;
+  height: 74px;
+  perspective: 460px;
+  perspective-origin: 50% 42%;
+  margin-bottom: 16px;
+  flex: none;
 }
 
-@media (max-width: 420px) {
-  :root { --box: 160px; --ribbon: 18px; --r: 20px; }
-  .box-stage { height: clamp(380px, 72vh, 540px); }
-  .bow { width: 110px; height: 72px; }
-  .bow__loop { width: 40px; height: 40px; }
-  .bow__knot { width: 24px; height: 26px; }
-  .bow__tail { width: 14px; height: 32px; bottom: -12px; }
+.gift-mini .gift {
+  --bw: 60px;
+  --bh: 40px;
+  --lip: 4px;
+  --lh: 20px;
+  --c: 7px;
+  --lc: 6px;
+  --ribbon: 12px;
+  --base-rx: -16;
+  --base-ry: -32;
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  margin-left: calc(var(--bw) / -2);
+  transition: transform 480ms var(--ease-spring);
 }
 
-/* ponytail: respects reduced-motion strictly. */
+.gift-mini::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 58px;
+  height: 12px;
+  margin-left: -29px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--p-color), transparent 70%);
+  filter: blur(7px);
+  opacity: 0.75;
+}
+
+.person:hover .gift-mini .gift { --base-ry: -16; --base-rx: -22; }
+
+.person:hover .gift-mini .gift__lid {
+  transform: translate3d(0, -11px, 0) rotateZ(-8deg) rotateX(-5deg);
+  transition: transform 480ms var(--ease-spring);
+}
+
+/* =========================================================================
+   9. Responsive
+   ========================================================================= */
+@media (max-width: 860px) {
+  .gift { --bw: 204px; --bh: 134px; --lh: 57px; --c: 19px; --lc: 14px; --ribbon: 36px; }
+}
+
+@media (max-width: 640px) {
+  .gift { --bw: 176px; --bh: 116px; --lh: 50px; --c: 17px; --lc: 12px; --ribbon: 31px; --lip: 9px; }
+  .box-stage { height: clamp(350px, 54vh, 440px); perspective: 880px; }
+}
+
+@media (max-width: 400px) {
+  .gift { --bw: 150px; --bh: 100px; --lh: 43px; --c: 15px; --lc: 10px; --ribbon: 27px; --lip: 8px; }
+  .box-stage { height: 320px; }
+  .gift-cta { font-size: 10px; padding: 8px 15px; letter-spacing: 0.14em; }
+}
+
+/* =========================================================================
+   10. Reduced motion
+   ========================================================================= */
 @media (prefers-reduced-motion: reduce) {
-  .box, .lid, .lid__top, .bow, .box-cta::before { animation: none !important; }
-  .box { translate: 0; }
+  .box-stage .gift { animation: none; }
+  .sparkle { animation: none; opacity: 0.7; }
+  .gift-cta::before { animation: none; }
+  .gift, .note { transition-duration: 1ms; }
+  .gift.is-open .gift__lid { animation-duration: 1ms; }
 }

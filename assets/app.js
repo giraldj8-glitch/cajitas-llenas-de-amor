@@ -1,7 +1,7 @@
 /* =========================================================================
    Cajitas llenas de amor — app.js
-   Renderiza la landing (rejilla de personas) o la página individual
-   (caja + mensajes) según los elementos presentes.
+   Pinta la landing (rejilla de personas) o la página individual
+   (regalo + mensajes) según los elementos presentes en el documento.
    ========================================================================= */
 
 (function () {
@@ -11,7 +11,7 @@
   const root = document.documentElement;
 
   // ============================================================
-  // Helper: iniciales de un nombre
+  // Helpers
   // ============================================================
   function getInitials(nombre) {
     return nombre
@@ -22,10 +22,13 @@
       .join('');
   }
 
-  // ============================================================
-  // Helper: color "burbuja" para el avatar de un remitente
-  //   Usado en los mensajes para diferenciar de quién viene.
-  // ============================================================
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  // Color "burbuja" para el avatar de quien firma un mensaje
   const COLOR_TOKENS = ['--c-mint', '--c-cyan', '--c-blue', '--c-purple'];
   function colorTokenForName(nombre) {
     let hash = 0;
@@ -35,44 +38,38 @@
     return COLOR_TOKENS[hash % COLOR_TOKENS.length];
   }
   function bubbleClassForToken(token) {
-    switch (token) {
-      case '--c-mint':   return 'message__from-bubble--mint';
-      case '--c-cyan':   return 'message__from-bubble--cyan';
-      case '--c-blue':   return 'message__from-bubble--blue';
-      case '--c-purple': return 'message__from-bubble--purple';
-      default:           return '';
-    }
+    return {
+      '--c-mint': 'message__from-bubble--mint',
+      '--c-cyan': 'message__from-bubble--cyan',
+      '--c-blue': 'message__from-bubble--blue',
+      '--c-purple': 'message__from-bubble--purple'
+    }[token] || '';
   }
 
   // ============================================================
-  // Landing: pinta la rejilla de personas
+  // Landing: rejilla de personas, cada una con su cajita mini
   // ============================================================
   function renderLanding() {
     const grid = document.querySelector('[data-grid]');
     if (!grid) return;
 
-    const html = D.orden.map(slug => {
+    grid.innerHTML = D.orden.map(slug => {
       const p = D.personas[slug];
       if (!p) return '';
       const count = p.mensajes.length;
       const hasMsgs = count > 0;
-      const countLabel = hasMsgs
-        ? `${count} ${count === 1 ? 'mensaje' : 'mensajes'}`
-        : 'Pronto';
-      const page = `./${slug}.html`;
 
       return `
-        <a class="person" href="${page}"
-           style="--p-color: ${p.color}; --p-soft: ${p.colorSuave};"
-           data-stagger>
-          <span class="person__bubble">${p.iniciales || getInitials(p.nombre)}</span>
-          <h2 class="person__name">${p.nombre}</h2>
-          ${p.alias ? `<p class="person__alias">también conocido como “${p.alias}”</p>` : `<p class="person__alias">&nbsp;</p>`}
+        <a class="person" href="./${slug}.html" data-stagger
+           style="--p-color: ${p.color}; --p-soft: ${p.colorSuave};">
+          <span class="gift-mini" data-mini-gift aria-hidden="true"></span>
+          <h2 class="person__name">${escapeHtml(p.nombre)}</h2>
+          ${p.alias ? `<p class="person__alias">para todos, “${escapeHtml(p.alias)}”</p>` : ''}
           <span class="person__count">
             ${hasMsgs ? `<strong>${count}</strong> ${count === 1 ? 'mensaje' : 'mensajes'}` : 'Pronto mensajes'}
           </span>
           <span class="person__cta">
-            ${hasMsgs ? 'Abrir su caja' : 'Ver la caja'}
+            ${hasMsgs ? 'Abrir su regalo' : 'Ver su caja'}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M5 12h14M13 5l7 7-7 7"/>
             </svg>
@@ -81,25 +78,38 @@
       `;
     }).join('');
 
-    grid.innerHTML = html;
+    // Cajita 3D dentro de cada tarjeta
+    if (window.buildGift) {
+      grid.querySelectorAll('[data-mini-gift]').forEach(host => {
+        const inner = document.createElement('span');
+        host.appendChild(inner);
+        window.buildGift(inner, { mini: true });
+      });
+    }
 
-    // stagger de entrada
+    // Entrada escalonada. Al terminar limpiamos los estilos inline: si se
+    // quedan, el `transform` de la tarjeta gana siempre y mata el :hover.
     requestAnimationFrame(() => {
       grid.querySelectorAll('[data-stagger]').forEach((el, i) => {
-        el.style.transitionDelay = (i * 60) + 'ms';
+        const delay = i * 60;
+        el.style.transitionDelay = delay + 'ms';
         el.style.opacity = '0';
-        el.style.transform = 'translateY(10px) scale(0.98)';
-        el.style.transition = 'opacity 500ms var(--ease-out), transform 500ms var(--ease-out)';
+        el.style.transform = 'translateY(12px)';
+        el.style.transition = 'opacity 560ms var(--ease-out), transform 560ms var(--ease-out)';
         requestAnimationFrame(() => {
           el.style.opacity = '1';
-          el.style.transform = 'translateY(0) scale(1)';
+          el.style.transform = 'translateY(0)';
         });
+        setTimeout(() => {
+          ['transition-delay', 'opacity', 'transform', 'transition']
+            .forEach(prop => el.style.removeProperty(prop));
+        }, delay + 640);
       });
     });
   }
 
   // ============================================================
-  // Página individual: pinta los mensajes y aplica tokens
+  // Página individual
   // ============================================================
   function renderPersona() {
     const personaRoot = document.querySelector('[data-persona]');
@@ -112,93 +122,84 @@
       return;
     }
 
-    // Aplica color dinámico al documento (CSS custom prop)
+    const count = p.mensajes.length;
+    const initials = p.iniciales || getInitials(p.nombre);
+
+    // Color de la persona para toda la página
     root.style.setProperty('--p-color', p.color);
     root.style.setProperty('--p-soft', p.colorSuave);
 
-    // Título y saludo
-    const titleEl = document.querySelector('[data-persona-name]');
-    if (titleEl) titleEl.innerHTML = p.alias
-      ? `Para <em>${p.alias}</em>`
-      : `Para <em>${p.nombre}</em>`;
-
+    // Encabezado
     const saludoEl = document.querySelector('[data-persona-greeting]');
-    if (saludoEl) saludoEl.textContent = p.saludo;
+    if (saludoEl) saludoEl.textContent = 'Para ' + (p.alias || p.nombre);
 
     const subEl = document.querySelector('[data-persona-sub]');
     if (subEl) {
-      if (p.mensajes.length === 0) {
-        subEl.textContent = 'Tu caja se está preparando. Cuando estés listo/a, toca la caja.';
-      } else if (p.mensajes.length === 1) {
-        subEl.textContent = 'Hay un mensaje esperándote dentro. Toca la caja para descubrirlo.';
-      } else {
-        subEl.textContent = `${p.mensajes.length} mensajes te han dedicado tus compañeros. Toca la caja para descubrirlos.`;
-      }
+      subEl.textContent =
+        count === 0 ? 'Tu caja se está preparando. Cuando estés listo/a, ábrela.'
+      : count === 1 ? 'Adentro hay un mensaje esperándote. Toca la caja para abrirla.'
+      : `Adentro hay ${count} mensajes de tus compañeros. Toca la caja para abrirla.`;
     }
 
-    // Initials en la tapa
-    const initialsEl = document.querySelector('[data-persona-initials]');
-    if (initialsEl) initialsEl.textContent = p.iniciales || getInitials(p.nombre);
+    // El regalo 3D
+    const giftHost = document.querySelector('[data-gift]');
+    if (giftHost && window.buildGift) {
+      window.buildGift(giftHost, { initials, notes: count > 0 });
+    }
 
-    // Lista de mensajes o empty state
+    // Mensajes / caja vacía
     const list = document.querySelector('[data-persona-messages]');
     const empty = document.querySelector('[data-persona-empty]');
-    const titleBar = document.querySelector('[data-persona-messages-title]');
-    const countEl = document.querySelector('[data-persona-messages-count]');
 
-    if (p.mensajes.length === 0) {
+    if (count === 0) {
       if (list) list.remove();
-      // el empty state se mostrará desde box.js al abrir
+      if (empty) empty.hidden = false;
     } else {
       if (empty) empty.remove();
-      const single = p.mensajes.length === 1;
-      if (single) list.classList.add('messages--single');
-      const html = p.mensajes.map(m => {
-        // Si el mensaje tiene "de" lo mostramos; si no, queda sin remitente.
-        if (m.de) {
-          const token = colorTokenForName(m.de);
-          const bubbleClass = bubbleClassForToken(token);
-          const initials = getInitials(m.de);
+      if (list) {
+        list.hidden = false;
+        if (count === 1) list.classList.add('messages--single');
+
+        const title = `
+          <h2 class="messages__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <span class="messages__title-text">${count === 1 ? 'Un mensaje para ti' : 'Mensajes para ti'}</span>
+            <span class="messages__count">${count} ${count === 1 ? 'mensaje' : 'mensajes'}</span>
+          </h2>`;
+
+        const cards = p.mensajes.map(m => {
+          if (m.de) {
+            const token = colorTokenForName(m.de);
+            return `
+              <article class="message">
+                <div class="message__from">
+                  <span class="message__from-bubble ${bubbleClassForToken(token)}"
+                        style="--p-color: var(${token});">${escapeHtml(getInitials(m.de))}</span>
+                  <span>De ${escapeHtml(m.alias || m.de)}</span>
+                </div>
+                <p class="message__body">${escapeHtml(m.texto)}</p>
+              </article>`;
+          }
           return `
-            <article class="message">
-              <div class="message__from">
-                <span class="message__from-bubble ${bubbleClass}" style="--p-color: var(${token});">${initials}</span>
-                <span>De ${m.alias || m.de}</span>
-              </div>
-              <p class="message__body">${m.texto}</p>
-            </article>
-          `;
-        }
-        return `
-          <article class="message message--solo">
-            <span class="message__eyebrow">Un mensaje para ti</span>
-            <p class="message__body">${m.texto}</p>
-            <span class="message__signature">Con cariño, del equipo</span>
-          </article>
-        `;
-      }).join('');
-      if (list) list.innerHTML = html;
-      if (titleBar) {
-        titleBar.hidden = false;
-        const titleText = titleBar.querySelector('.messages__title-text');
-        if (titleText) {
-          titleText.textContent = p.mensajes.length === 1
-            ? 'Un mensaje para ti'
-            : 'Mensajes para ti';
-        }
-      }
-      if (countEl) {
-        countEl.textContent = `${p.mensajes.length} ${p.mensajes.length === 1 ? 'mensaje' : 'mensajes'}`;
+            <article class="message message--solo">
+              <span class="message__eyebrow">Un mensaje para ti</span>
+              <p class="message__body">${escapeHtml(m.texto)}</p>
+              <span class="message__signature">Con cariño, del equipo</span>
+            </article>`;
+        }).join('');
+
+        // El título va dentro de .messages para compartir la animación de
+        // entrada, y se arma junto con las tarjetas en un solo innerHTML
+        // (antes se pintaba aparte y el innerHTML de las tarjetas lo borraba).
+        list.innerHTML = (count === 1 ? '' : title) + cards;
       }
     }
 
-    // Tabs title del documento
-    document.title = `${p.alias || p.nombre} · ${D.equipo}`;
+    document.title = `El equipo te envió un regalo · ${p.alias || p.nombre}`;
   }
 
-  // ============================================================
-  // Boot
-  // ============================================================
   renderLanding();
   renderPersona();
 })();

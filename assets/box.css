@@ -17,11 +17,10 @@
   place-items: center;
   width: 100%;
   height: clamp(440px, 72vh, 640px);
-  perspective: 1400px;
-  perspective-origin: 50% 30%;
-  transform-style: preserve-3d;  /* ponytail: faltaba — el contexto 3D
-                                    no se establecía y las caras se
-                                    superponían sobre el texto. */
+  /* perspective más baja = más drama 3D (1400 era casi plano) */
+  perspective: 900px;
+  perspective-origin: 50% 28%;
+  transform-style: preserve-3d;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   margin: 24px 0;
@@ -205,14 +204,14 @@
 .face--bottom::before,
 .face--bottom::after { opacity: 0.35; }
 
-/* ---------- Tapa (del mismo tamaño que la caja) ------------------------ */
+/* ---------- Tapa (elevada para que se distinga de la base) ------------- */
 .lid {
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
   transform-origin: 50% 0%;
-  /* +2px para evitar z-fighting con .face--top del cubo */
-  transform: translateZ(calc(var(--half) + 2px)) rotateX(0deg);
+  /* +8px para que se NOTE que la tapa está encima de la base */
+  transform: translateZ(calc(var(--half) + 8px)) rotateX(0deg);
   transition: transform 900ms var(--ease-spring);
   z-index: 3;
   border-radius: var(--r);
@@ -223,16 +222,19 @@
   inset: 0;
   border-radius: inherit;
   background:
-    radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.45) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.50) 0%, transparent 55%),
     linear-gradient(180deg,
       color-mix(in oklab, var(--p-color) 95%, #fff 5%) 0%,
       var(--p-color) 40%,
       color-mix(in oklab, var(--p-color) 70%, #000 30%) 100%);
-  border: 1px solid rgba(255,255,255,0.20);
+  /* borde más marcado para que se distinga del cubo */
+  border: 1.5px solid rgba(255,255,255,0.30);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.40),
+    inset 0 1px 0 rgba(255,255,255,0.50),
     inset 0 -2px 0 rgba(0,0,0,0.20),
-    0 18px 36px -10px rgba(0,0,0,0.55),
+    /* sombra fuerte ABAJO que crea el efecto de "tapa elevada" */
+    0 14px 24px -8px rgba(0,0,0,0.7),
+    0 4px 8px -2px rgba(0,0,0,0.4),
     0 0 0 1px rgba(0,0,0,0.10);
 }
 
@@ -274,15 +276,19 @@
 
 .lid__initials {
   position: absolute;
-  bottom: 12px;
-  right: 16px;
+  top: 10px;
+  right: 14px;
   font-family: var(--f-display);
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 600;
-  color: rgba(255,255,255,0.80);
-  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.55);
+  letter-spacing: 0.10em;
   text-shadow: 0 1px 2px rgba(0,0,0,0.4);
   z-index: 1;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(4px);
 }
 
 /* Shine bar: destello diagonal que pasa por la tapa cada ~4s */
@@ -311,47 +317,49 @@
 
 .box.is-open .lid__shine { animation: none; opacity: 0; }
 
-/* ---------- Moño (grande, prominente, glossy) ------------------------- */
+/* ---------- Moño (lazos ovalados y prominentes) ------------------------- */
 .bow {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 170px;
-  height: 110px;
+  width: 200px;
+  height: 130px;
   transform: translate(-50%, -50%);
   z-index: 5;
   pointer-events: none;
-  filter: drop-shadow(0 8px 12px rgba(0,0,0,0.45));
+  filter: drop-shadow(0 8px 14px rgba(0,0,0,0.50));
 }
 
 .bow__loop {
   position: absolute;
-  top: 0;
-  width: 64px;
-  height: 64px;
+  top: 50%;
+  width: 78px;
+  height: 54px;
+  /* forma ovalada, no círculo perfecto — más "lazo" menos "bola" */
   background:
-    radial-gradient(ellipse at 40% 35%,
-      color-mix(in oklab, var(--p-soft) 92%, #fff 0%) 0%,
+    radial-gradient(ellipse at 35% 30%,
+      color-mix(in oklab, var(--p-soft) 95%, #fff 5%) 0%,
       var(--p-soft) 55%,
-      color-mix(in oklab, var(--p-soft) 45%, #000 55%) 100%);
-  border-radius: 50%;
+      color-mix(in oklab, var(--p-soft) 40%, #000 60%) 100%);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
   box-shadow:
-    inset 0 0 0 2px rgba(255,255,255,0.35),
-    inset 6px 6px 14px rgba(255,255,255,0.30),
-    inset -8px -8px 18px rgba(0,0,0,0.30);
+    inset 0 0 0 2px rgba(255,255,255,0.40),
+    inset 8px 4px 14px rgba(255,255,255,0.35),
+    inset -8px -6px 18px rgba(0,0,0,0.30);
+  transform: translateY(-50%);
 }
 
-.bow__loop--left  { left: 0;  transform: rotate(-15deg); }
-.bow__loop--right { right: 0; transform: rotate( 15deg); }
+.bow__loop--left  { left: 4px;  transform: translateY(-50%) rotate(-18deg); }
+.bow__loop--right { right: 4px; transform: translateY(-50%) rotate( 18deg); }
 
 .bow__loop::after {
   content: "";
   position: absolute;
-  top: 18%;
-  left: 22%;
-  width: 28%;
-  height: 22%;
-  background: rgba(255,255,255,0.65);
+  top: 14%;
+  left: 18%;
+  width: 35%;
+  height: 26%;
+  background: rgba(255,255,255,0.70);
   border-radius: 50%;
   filter: blur(1.5px);
 }
@@ -360,41 +368,41 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 38px;
+  width: 36px;
   height: 40px;
   transform: translate(-50%, -50%);
   background:
-    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.70), transparent 50%),
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.75), transparent 50%),
     var(--p-soft);
   border-radius: 8px;
   box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.40),
+    inset 0 0 0 1px rgba(255,255,255,0.45),
     inset 0 -4px 8px rgba(0,0,0,0.30);
   z-index: 2;
 }
 
 .bow__tail {
   position: absolute;
-  bottom: -22px;
-  width: 22px;
-  height: 50px;
+  bottom: -28px;
+  width: 24px;
+  height: 56px;
   background:
     linear-gradient(180deg,
       var(--p-soft) 0%,
       color-mix(in oklab, var(--p-soft) 55%, #000 45%) 100%);
-  border-radius: 2px 2px 18px 18px;
+  border-radius: 2px 2px 22px 22px;
   box-shadow:
     inset 0 0 0 1px rgba(255,255,255,0.22),
     inset -2px 0 6px rgba(0,0,0,0.28);
   z-index: 1;
 }
 
-.bow__tail--left  { left: calc(50% - 28px); transform: rotate(-14deg) skewY(-8deg); }
+.bow__tail--left  { left: calc(50% - 30px); transform: rotate(-14deg) skewY(-8deg); }
 .bow__tail--right { left: calc(50% + 6px);  transform: rotate( 14deg) skewY( 8deg); }
 
 /* ---------- Apertura --------------------------------------------------- */
 .box.is-open .lid {
-  transform: translateZ(calc(var(--half) + 2px)) rotateX(-160deg);
+  transform: translateZ(calc(var(--half) + 8px)) rotateX(-160deg);
 }
 
 .box.is-open {

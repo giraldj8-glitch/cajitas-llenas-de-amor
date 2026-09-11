@@ -120,18 +120,17 @@ a { color: inherit; text-decoration: none; }
 
 .shell--narrow { max-width: 760px; }
 
-/* En páginas individuales (sin header) — más aire arriba */
+/* En páginas individuales (sin header) — más aire arriba.
+   ponytail: el display:flex rompía el contexto 3D del .box-stage.
+   Sin flex/block, los hijos se apilan normalmente y el 3D funciona. */
 .scene--solo {
   padding-top: clamp(40px, 7vw, 72px);
   padding-bottom: clamp(40px, 6vw, 60px);
   min-height: 100vh;
-  display: flex;
-  align-items: stretch;
 }
 
 .scene--solo > .shell {
   padding-top: 0;
-  width: 100%;
 }
 
 .header {

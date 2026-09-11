@@ -1,17 +1,16 @@
 /* =========================================================================
    Cajitas llenas de amor — box.css
-   Gift box 3D con esquinas redondeadas tipo "suitcase", listón cruzado
-   y moño prominente. Sin dependencias externas.
+   Gift box 3D con esquinas redondeadas + listón + moño. Sin libs.
    ========================================================================= */
 
 :root {
-  --box-size: 230px;            /* arista del cubo */
-  --box-half: calc(var(--box-size) / 2);
-  --box-pad: 24px;              /* ancho de la cinta */
-  --box-radius: 32px;           /* bordes muy redondeados (suitcase) */
+  --box: 230px;                              /* arista del cubo */
+  --half: calc(var(--box) / 2);
+  --ribbon: 26px;                            /* ancho de la cinta */
+  --r: 26px;                                 /* border-radius de la caja */
 }
 
-/* ---------- Escenario / suelo 3D ---------------------------------------- */
+/* ---------- Escenario -------------------------------------------------- */
 .box-stage {
   position: relative;
   display: grid;
@@ -24,8 +23,8 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Suelo con líneas de perspectiva */
 .box-stage::before {
+  /* suelo con líneas de perspectiva */
   content: "";
   position: absolute;
   bottom: 6%;
@@ -33,20 +32,19 @@
   width: 75%;
   max-width: 560px;
   height: 90px;
-  transform: translateX(-50%) rotateX(72deg);
-  transform-origin: 50% 0%;
+  border-radius: 50%;
   background:
     linear-gradient(transparent 49%, rgba(255,255,255,0.07) 50%, transparent 51%) 0 0 / 100% 24px,
     linear-gradient(90deg, transparent 49%, rgba(255,255,255,0.07) 50%, transparent 51%) 0 0 / 24px 100%,
     radial-gradient(ellipse at center, rgba(0, 8, 57, 0.6), transparent 70%);
-  border-radius: 50%;
+  transform: translateX(-50%) rotateX(72deg);
   z-index: 0;
   pointer-events: none;
-  opacity: 0.75;
+  opacity: 0.7;
 }
 
-/* Sombra de contacto grande */
 .box-stage::after {
+  /* sombra de contacto */
   content: "";
   position: absolute;
   bottom: 10%;
@@ -56,18 +54,17 @@
   height: 60px;
   border-radius: 50%;
   background: radial-gradient(closest-side, var(--p-color), transparent 70%);
-  opacity: 0.5;
   filter: blur(30px);
   transform: translateX(-50%);
   z-index: 0;
   pointer-events: none;
+  opacity: 0.5;
   transition: opacity var(--t-slow) var(--ease-out), filter var(--t-slow) var(--ease-out);
 }
 
 .box-stage.is-open::after { opacity: 0.95; filter: blur(40px); }
 
-/* Halo superior */
-.box-stage > .glow {
+.glow {
   position: absolute;
   top: 16%;
   left: 50%;
@@ -76,21 +73,45 @@
   height: 340px;
   border-radius: 50%;
   background: radial-gradient(closest-side, var(--p-color), transparent 70%);
-  opacity: 0.18;
   filter: blur(56px);
   transform: translateX(-50%);
+  opacity: 0.18;
   z-index: 0;
   pointer-events: none;
   transition: opacity var(--t-slow) var(--ease-out);
 }
 
-.box-stage.is-open > .glow { opacity: 0.32; }
+.box-stage.is-open .glow { opacity: 0.32; }
 
-/* ---------- El cubo (forma suitcase) ------------------------------------ */
+/* Sparkles (estrellas brillantes alrededor) */
+.sparkle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--p-color);
+  box-shadow: 0 0 8px var(--p-color), 0 0 16px var(--p-color);
+  pointer-events: none;
+  z-index: 1;
+  animation: sparkle 2.4s var(--ease-in-out) infinite;
+}
+
+.sparkle:nth-child(2) { top: 22%; left: 28%; animation-delay: 0s; }
+.sparkle:nth-child(3) { top: 30%; right: 22%; animation-delay: 0.6s; width: 3px; height: 3px; }
+.sparkle:nth-child(4) { top: 18%; right: 32%; animation-delay: 1.1s; }
+.sparkle:nth-child(5) { bottom: 28%; left: 24%; animation-delay: 1.6s; width: 3px; height: 3px; }
+.sparkle:nth-child(6) { bottom: 30%; right: 28%; animation-delay: 0.3s; }
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0.6); }
+  50%      { opacity: 1; transform: scale(1.2); }
+}
+
+/* ---------- El cubo ---------------------------------------------------- */
 .box {
   position: relative;
-  width: var(--box-size);
-  height: var(--box-size);
+  width: var(--box);
+  height: var(--box);
   transform-style: preserve-3d;
   transform:
     rotateX(calc(var(--rx, 0) * 1deg))
@@ -102,31 +123,35 @@
   z-index: 1;
 }
 
-.box:active { transform: scale(0.985); }
+.box:active {
+  /* Incluye las rotaciones para no romper el parallax al hacer click. */
+  transform:
+    rotateX(calc(var(--rx, 0) * 1deg))
+    rotateY(calc(var(--ry, 0) * 1deg))
+    scale(0.985);
+}
 
 @keyframes float {
   0%, 100% { translate: 0 0; }
   50%      { translate: 0 -18px; }
 }
 
-/* ---------- Caras (6 lados) --------------------------------------------- */
+/* ---------- Caras (6 lados) -------------------------------------------- */
 .face {
   position: absolute;
   inset: 0;
-  border-radius: var(--box-radius);
+  border-radius: var(--r);
   background:
-    /* highlight glossy arriba */
-    radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.32) 0%, transparent 55%),
-    /* sombra interior abajo */
-    linear-gradient(180deg, var(--p-color) 0%, color-mix(in oklab, var(--p-color) 80%, #000 20%) 100%);
-  border: 1px solid rgba(255,255,255,0.14);
+    radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.28) 0%, transparent 55%),
+    linear-gradient(180deg, var(--p-color) 0%, color-mix(in oklab, var(--p-color) 70%, #000 30%) 100%);
+  border: 1px solid rgba(255,255,255,0.12);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.30),    /* highlight del borde superior */
-    inset 0 -2px 0 rgba(0,0,0,0.18),          /* sombra del borde inferior */
+    inset 0 1px 0 rgba(255,255,255,0.30),
+    inset 0 -2px 0 rgba(0,0,0,0.18),
     inset 0 0 50px rgba(0,0,0,0.12);
 }
 
-/* Cintas cruzadas: vertical y horizontal pintadas en cada cara */
+/* Cintas cruzadas (pintadas en cada cara) */
 .face::before,
 .face::after {
   content: "";
@@ -138,53 +163,45 @@
       color-mix(in oklab, var(--p-soft) 50%, #000 50%) 100%);
   box-shadow:
     inset 0 0 0 1px rgba(255,255,255,0.22),
-    inset 0 4px 6px rgba(255,255,255,0.20),
-    inset 0 -4px 6px rgba(0,0,0,0.30);
+    inset 0 4px 4px rgba(255,255,255,0.18),
+    inset 0 -4px 4px rgba(0,0,0,0.30);
   pointer-events: none;
 }
 
-/* Cinta vertical centrada */
-.face::before {
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: var(--box-pad);
+.face::before { /* vertical */
+  top: 0; bottom: 0; left: 50%;
+  width: var(--ribbon);
   transform: translateX(-50%);
-  border-radius: 1px;
 }
 
-/* Cinta horizontal centrada */
-.face::after {
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: var(--box-pad);
+.face::after { /* horizontal */
+  left: 0; right: 0; top: 50%;
+  height: var(--ribbon);
   transform: translateY(-50%);
-  border-radius: 1px;
 }
 
-.face--front  { transform: translateZ(var(--box-half)); }
-.face--back   { transform: rotateY(180deg) translateZ(var(--box-half)); }
-.face--right  { transform: rotateY( 90deg) translateZ(var(--box-half)); }
-.face--left   { transform: rotateY(-90deg) translateZ(var(--box-half)); }
+.face--front  { transform: translateZ(var(--half)); }
+.face--back   { transform: rotateY(180deg) translateZ(var(--half)); }
+.face--right  { transform: rotateY( 90deg) translateZ(var(--half)); }
+.face--left   { transform: rotateY(-90deg) translateZ(var(--half)); }
 .face--bottom {
-  transform: rotateX(-90deg) translateZ(var(--box-half));
+  transform: rotateX(-90deg) translateZ(var(--half));
   background: color-mix(in oklab, var(--p-color) 50%, #000 50%);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
 }
 .face--bottom::before,
 .face--bottom::after { opacity: 0.35; }
 
-/* ---------- Tapa (sobresale como un gift box) -------------------------- */
+/* ---------- Tapa (del mismo tamaño que la caja) ------------------------ */
 .lid {
   position: absolute;
-  inset: -8px;   /* sobresale 8px por cada lado */
+  inset: 0;
   transform-style: preserve-3d;
   transform-origin: 50% 0%;
-  transform: translateZ(var(--box-half)) rotateX(0deg);
+  transform: translateZ(var(--half)) rotateX(0deg);
   transition: transform 900ms var(--ease-spring);
   z-index: 3;
-  border-radius: calc(var(--box-radius) + 8px);
+  border-radius: var(--r);
 }
 
 .lid__top {
@@ -194,57 +211,23 @@
   background:
     radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.40) 0%, transparent 55%),
     linear-gradient(180deg,
-      color-mix(in oklab, var(--p-color) 90%, #fff 0%) 0%,
-      var(--p-color) 35%,
-      color-mix(in oklab, var(--p-color) 75%, #000 25%) 100%);
-  border: 1px solid rgba(255,255,255,0.24);
+      color-mix(in oklab, var(--p-color) 95%, #fff 5%) 0%,
+      var(--p-color) 40%,
+      color-mix(in oklab, var(--p-color) 70%, #000 30%) 100%);
+  border: 1px solid rgba(255,255,255,0.20);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,0.40),
     inset 0 -2px 0 rgba(0,0,0,0.20),
     0 18px 36px -10px rgba(0,0,0,0.55);
-  height: 64px; /* grosor de la tapa */
 }
 
-/* Bisel / canto frontal de la tapa */
-.lid__top::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  height: 6px;
-  background: color-mix(in oklab, var(--p-color) 60%, #000 40%);
-  border-radius: 0 0 calc(var(--box-radius) + 8px) calc(var(--box-radius) + 8px);
-}
-
-/* Cinta horizontal sobre la tapa */
+/* Cruz de cintas sobre la tapa: horizontal (::after) y vertical (elemento HTML) */
 .lid__top::after {
   content: "";
   position: absolute;
-  left: 50%;
-  right: -8px;
-  top: 50%;
-  height: var(--box-pad);
+  left: 0; right: 0; top: 50%;
+  height: var(--ribbon);
   transform: translateY(-50%);
-  background:
-    linear-gradient(90deg,
-      color-mix(in oklab, var(--p-soft) 50%, #000 50%) 0%,
-      var(--p-soft) 50%,
-      color-mix(in oklab, var(--p-soft) 50%, #000 50%) 100%);
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.22),
-    inset 0 4px 6px rgba(255,255,255,0.20),
-    inset 0 -4px 6px rgba(0,0,0,0.30);
-}
-
-/* Cinta vertical sobre la tapa */
-.lid__ribbon-v {
-  position: absolute;
-  top: -8px;
-  bottom: -1px;
-  left: 50%;
-  width: var(--box-pad);
-  transform: translateX(-50%);
   background:
     linear-gradient(180deg,
       color-mix(in oklab, var(--p-soft) 50%, #000 50%) 0%,
@@ -252,30 +235,73 @@
       color-mix(in oklab, var(--p-soft) 50%, #000 50%) 100%);
   box-shadow:
     inset 0 0 0 1px rgba(255,255,255,0.22),
-    inset 4px 0 6px rgba(255,255,255,0.20),
-    inset -4px 0 6px rgba(0,0,0,0.30);
+    inset 0 4px 4px rgba(255,255,255,0.18),
+    inset 0 -4px 4px rgba(0,0,0,0.30);
+}
+
+.lid__ribbon-v {
+  position: absolute;
+  inset: 0;
+  width: var(--ribbon);
+  left: 50%;
+  transform: translateX(-50%);
+  background:
+    linear-gradient(90deg,
+      color-mix(in oklab, var(--p-soft) 50%, #000 50%) 0%,
+      var(--p-soft) 50%,
+      color-mix(in oklab, var(--p-soft) 50%, #000 50%) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.22),
+    inset 4px 0 4px rgba(255,255,255,0.18),
+    inset -4px 0 4px rgba(0,0,0,0.30);
   z-index: 2;
 }
 
 .lid__initials {
   position: absolute;
-  bottom: 8px;
-  right: 18px;
+  bottom: 12px;
+  right: 16px;
   font-family: var(--f-display);
   font-size: 14px;
   font-weight: 600;
-  color: rgba(255,255,255,0.78);
+  color: rgba(255,255,255,0.80);
   letter-spacing: 0.06em;
   text-shadow: 0 1px 2px rgba(0,0,0,0.4);
   z-index: 1;
 }
 
-/* ---------- Moño (bow) grande y prominente ----------------------------- */
+/* Shine bar: destello diagonal que pasa por la tapa cada ~4s */
+.lid__shine {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  background: linear-gradient(
+    115deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 65%
+  );
+  background-size: 200% 200%;
+  background-position: 200% 0;
+  animation: shine 4.5s var(--ease-in-out) infinite;
+  mix-blend-mode: screen;
+}
+
+@keyframes shine {
+  0%   { background-position: 200% 0; }
+  60%  { background-position: -100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+.box.is-open .lid__shine { animation: none; opacity: 0; }
+
+/* ---------- Moño (grande, prominente, glossy) ------------------------- */
 .bow {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 160px;
+  width: 170px;
   height: 110px;
   transform: translate(-50%, -50%);
   z-index: 5;
@@ -285,14 +311,14 @@
 
 .bow__loop {
   position: absolute;
-  top: 6px;
-  width: 62px;
+  top: 0;
+  width: 64px;
   height: 64px;
   background:
-    radial-gradient(ellipse at 50% 60%,
-      color-mix(in oklab, var(--p-soft) 90%, #fff 0%) 0%,
-      var(--p-soft) 70%,
-      color-mix(in oklab, var(--p-soft) 50%, #000 50%) 100%);
+    radial-gradient(ellipse at 40% 35%,
+      color-mix(in oklab, var(--p-soft) 92%, #fff 0%) 0%,
+      var(--p-soft) 55%,
+      color-mix(in oklab, var(--p-soft) 45%, #000 55%) 100%);
   border-radius: 50%;
   box-shadow:
     inset 0 0 0 2px rgba(255,255,255,0.35),
@@ -300,16 +326,15 @@
     inset -8px -8px 18px rgba(0,0,0,0.30);
 }
 
-.bow__loop--left  { left: 6px;  transform: rotate(-15deg); }
-.bow__loop--right { right: 6px; transform: rotate( 15deg); }
+.bow__loop--left  { left: 0;  transform: rotate(-15deg); }
+.bow__loop--right { right: 0; transform: rotate( 15deg); }
 
-/* Brillo en cada lazo */
 .bow__loop::after {
   content: "";
   position: absolute;
   top: 18%;
   left: 22%;
-  width: 26%;
+  width: 28%;
   height: 22%;
   background: rgba(255,255,255,0.65);
   border-radius: 50%;
@@ -320,11 +345,11 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 36px;
-  height: 38px;
+  width: 38px;
+  height: 40px;
   transform: translate(-50%, -50%);
   background:
-    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.65), transparent 50%),
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.70), transparent 50%),
     var(--p-soft);
   border-radius: 8px;
   box-shadow:
@@ -333,7 +358,6 @@
   z-index: 2;
 }
 
-/* Colas del moño */
 .bow__tail {
   position: absolute;
   bottom: -22px;
@@ -353,9 +377,9 @@
 .bow__tail--left  { left: calc(50% - 28px); transform: rotate(-14deg) skewY(-8deg); }
 .bow__tail--right { left: calc(50% + 6px);  transform: rotate( 14deg) skewY( 8deg); }
 
-/* ---------- Apertura de la tapa ---------------------------------------- */
+/* ---------- Apertura --------------------------------------------------- */
 .box.is-open .lid {
-  transform: translateZ(var(--box-half)) rotateX(-160deg);
+  transform: translateZ(var(--half)) rotateX(-160deg);
 }
 
 .box.is-open {
@@ -391,7 +415,7 @@
   100% { scale: 1; }
 }
 
-/* ---------- CTA "Toca para abrir" -------------------------------------- */
+/* ---------- CTA "Toca para abrir" ------------------------------------- */
 .box-cta {
   position: absolute;
   top: 105%;
@@ -426,55 +450,34 @@
   animation: pulse 1.6s var(--ease-in-out) infinite;
 }
 
-.box.is-open .box-cta {
-  opacity: 0;
-  transform: translateX(-50%) translateY(8px);
-}
+.box.is-open .box-cta { opacity: 0; transform: translateX(-50%) translateY(8px); }
 
 @keyframes pulse {
   0%, 100% { transform: scale(1); opacity: 1; }
   50%      { transform: scale(1.5); opacity: 0.5; }
 }
 
-/* ---------- Canvas para confeti ---------------------------------------- */
-.confetti {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 50;
-}
+.confetti { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
 
-/* ---------- Responsive ------------------------------------------------- */
+/* ---------- Responsive ----------------------------------------------- */
 @media (max-width: 720px) {
-  :root {
-    --box-size: 180px;
-    --box-pad: 20px;
-    --box-radius: 28px;
-  }
-  .lid { inset: -6px; border-radius: calc(var(--box-radius) + 6px); }
-  .lid__top { height: 52px; }
-  .bow { width: 120px; height: 86px; }
-  .bow__loop { width: 46px; height: 48px; }
-  .bow__knot { width: 28px; height: 30px; }
+  :root { --box: 180px; --ribbon: 20px; --r: 22px; }
+  .bow { width: 130px; height: 86px; }
+  .bow__loop { width: 48px; height: 48px; }
+  .bow__knot { width: 30px; height: 32px; }
   .bow__tail { width: 18px; height: 40px; bottom: -16px; }
 }
 
 @media (max-width: 420px) {
-  :root {
-    --box-size: 160px;
-    --box-pad: 18px;
-    --box-radius: 24px;
-  }
+  :root { --box: 160px; --ribbon: 18px; --r: 20px; }
   .box-stage { height: clamp(380px, 72vh, 540px); }
-  .lid { inset: -5px; border-radius: calc(var(--box-radius) + 5px); }
-  .lid__top { height: 46px; }
-  .bow { width: 100px; height: 72px; }
-  .bow__loop { width: 38px; height: 40px; }
+  .bow { width: 110px; height: 72px; }
+  .bow__loop { width: 40px; height: 40px; }
   .bow__knot { width: 24px; height: 26px; }
   .bow__tail { width: 14px; height: 32px; bottom: -12px; }
 }
 
-/* ---------- Reduced motion --------------------------------------------- */
+/* ponytail: respects reduced-motion strictly. */
 @media (prefers-reduced-motion: reduce) {
   .box, .lid, .lid__top, .bow, .box-cta::before { animation: none !important; }
   .box { translate: 0; }

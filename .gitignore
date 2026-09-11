@@ -12,3 +12,6 @@
 # Logs / OS
 *.log
 Thumbs.db
+
+# Fuente de los mensajes (los textos ya viven en assets/data.js)
+mensajes.docx

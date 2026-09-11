@@ -158,7 +158,8 @@
       if (empty) empty.remove();
       if (list) {
         list.hidden = false;
-        if (count === 1) list.classList.add('messages--single');
+        const single = count === 1;
+        if (single) list.classList.add('messages--single');
 
         const title = `
           <h2 class="messages__title">
@@ -169,7 +170,8 @@
             <span class="messages__count">${count} ${count === 1 ? 'mensaje' : 'mensajes'}</span>
           </h2>`;
 
-        const cards = p.mensajes.map(m => {
+        const cards = p.mensajes.map((m, i) => {
+          // Mensaje firmado
           if (m.de) {
             const token = colorTokenForName(m.de);
             return `
@@ -182,18 +184,35 @@
                 <p class="message__body">${escapeHtml(m.texto)}</p>
               </article>`;
           }
+
+          // Mensaje anónimo, y es el único: se lleva la tarjeta ceremoniosa
+          if (single) {
+            return `
+              <article class="message message--solo">
+                <span class="message__eyebrow">Un mensaje para ti</span>
+                <p class="message__body">${escapeHtml(m.texto)}</p>
+                <span class="message__signature">Con cariño, del equipo</span>
+              </article>`;
+          }
+
+          // Varios anónimos: repetir "Un mensaje para ti / Con cariño, del
+          // equipo" en cada tarjeta cansa. Va un número discreto y una sola
+          // firma al final de la sección.
           return `
-            <article class="message message--solo">
-              <span class="message__eyebrow">Un mensaje para ti</span>
+            <article class="message message--anon">
+              <span class="message__index" aria-hidden="true">${String(i + 1).padStart(2, '0')}</span>
               <p class="message__body">${escapeHtml(m.texto)}</p>
-              <span class="message__signature">Con cariño, del equipo</span>
             </article>`;
         }).join('');
+
+        const signoff = (!single && p.mensajes.some(m => !m.de))
+          ? '<p class="messages__signoff">Con cariño, del equipo</p>'
+          : '';
 
         // El título va dentro de .messages para compartir la animación de
         // entrada, y se arma junto con las tarjetas en un solo innerHTML
         // (antes se pintaba aparte y el innerHTML de las tarjetas lo borraba).
-        list.innerHTML = (count === 1 ? '' : title) + cards;
+        list.innerHTML = (single ? '' : title) + cards + signoff;
       }
     }
 

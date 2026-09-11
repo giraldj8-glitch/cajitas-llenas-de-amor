@@ -465,6 +465,14 @@ a { color: inherit; text-decoration: none; }
   font-size: 18px;
   color: #fff;
   margin: 0 0 4px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 500ms var(--ease-out) 120ms, transform 500ms var(--ease-out) 120ms;
+}
+
+.messages.is-visible .messages__title {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .messages__title svg { width: 18px; height: 18px; color: var(--p-color); }
@@ -485,15 +493,16 @@ a { color: inherit; text-decoration: none; }
   background: linear-gradient(160deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
   border: 1px solid var(--c-line);
   transition: transform var(--t-base) var(--ease-out), border-color var(--t-base) var(--ease-out);
-  /* estado de entrada */
+  /* estado de entrada: cae y aparece con un pop */
   opacity: 0;
-  transform: translateY(16px) scale(0.96);
+  transform: translateY(24px) scale(0.85);
+  transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-spring);
 }
 
 .messages.is-visible .message {
   opacity: 1;
   transform: translateY(0) scale(1);
-  transition: opacity 500ms var(--ease-out), transform 500ms var(--ease-out);
+  transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-spring);
 }
 
 .message::before {

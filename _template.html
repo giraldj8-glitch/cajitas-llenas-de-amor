@@ -46,6 +46,8 @@
       </section>
 
       <section class="box-stage" aria-label="Caja con mensajes">
+        <span class="glow" aria-hidden="true"></span>
+
         <div class="box" role="button" tabindex="0" aria-label="Toca para abrir la caja">
           <div class="face face--front"></div>
           <div class="face face--back"></div>
@@ -55,12 +57,21 @@
 
           <div class="lid">
             <div class="lid__top">
-              <span class="lid__bow" aria-hidden="true"></span>
+              <span class="lid__ribbon-v" aria-hidden="true"></span>
+
+              <span class="bow" aria-hidden="true">
+                <span class="bow__loop bow__loop--left"></span>
+                <span class="bow__loop bow__loop--right"></span>
+                <span class="bow__knot"></span>
+                <span class="bow__tail bow__tail--left"></span>
+                <span class="bow__tail bow__tail--right"></span>
+              </span>
+
               <span class="lid__initials" data-persona-initials>YO</span>
             </div>
           </div>
 
-          <div class="box-cta">Toca para abrir</div>
+          <span class="box-cta">Toca para abrir</span>
         </div>
 
         <div class="hint" role="status" aria-live="polite">
@@ -69,7 +80,7 @@
         </div>
       </section>
 
-      <section class="messages" data-persona-messages hidden-until-open>
+      <section class="messages" data-persona-messages>
         <h2 class="messages__title" data-persona-messages-title hidden>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -79,7 +90,7 @@
         </h2>
       </section>
 
-      <section class="empty" data-persona-empty hidden-until-open>
+      <section class="empty" data-persona-empty>
         <span class="empty__icon" aria-hidden="true">💌</span>
         <h2>Tu caja se está llenando de cariño</h2>
         <p>Pronto encontrarás aquí los mensajes que el equipo tiene para ti. Vuelve cuando recibas la notificación ✨</p>

@@ -27,8 +27,8 @@
     const cy = rect.top + rect.height / 2;
     const px = (e.clientX - cx) / rect.width;  // -0.5 .. 0.5
     const py = (e.clientY - cy) / rect.height;
-    targetRy = px * 18;   // gira más en Y
-    targetRx = -py * 10;  // gira menos en X
+    targetRy = px * 22;
+    targetRx = -py * 12;
   }
 
   function onLeave() {
@@ -37,7 +37,6 @@
     targetRy = 0;
   }
 
-  // Suavizado con rAF (en lugar de saltar)
   function loop() {
     rx += (targetRx - rx) * 0.12;
     ry += (targetRy - ry) * 0.12;
@@ -47,11 +46,10 @@
   }
 
   // ----- Apertura --------------------------------------------------------
-  function openBox(e) {
+  function openBox() {
     if (opened) return;
     opened = true;
 
-    // Cálculo del centro para confeti
     const rect = box.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
@@ -59,36 +57,45 @@
     box.classList.add('is-open');
     stage.classList.add('is-open');
 
-    // Lanzar confeti
+    // Confeti en 2 oleadas para que se vea más
     if (window.cajitasConfetti) {
-      window.cajitasConfetti({ x: cx, y: cy });
+      window.cajitasConfetti({ x: cx, y: cy, count: 160 });
+      setTimeout(() => {
+        const r2 = box.getBoundingClientRect();
+        window.cajitasConfetti({
+          x: r2.left + r2.width / 2,
+          y: r2.top + r2.height / 2,
+          count: 90
+        });
+      }, 350);
     }
 
-    // Ocultar hint
     if (hint) hint.classList.add('is-hidden');
 
-    // Quitar parallax cuando está abierta
     targetRx = 0;
     targetRy = 0;
 
-    // Mostrar mensajes
-    if (messages) {
-      // stagger via data-attr
+    // Mostrar mensajes con delay para que la tapa se aprecie abriendo
+    if (messages && messages.querySelectorAll('.message').length > 0) {
       const items = messages.querySelectorAll('.message');
       items.forEach((el, i) => {
-        el.style.transitionDelay = (120 + i * 80) + 'ms';
+        el.style.transitionDelay = (220 + i * 110) + 'ms';
       });
-      // pequeño delay para que la tapa se vea abriendo
       setTimeout(() => {
         messages.classList.add('is-visible');
-        // scroll suave a los mensajes
         if (!REDUCED) {
           const top = messages.getBoundingClientRect().top + window.scrollY - 60;
           window.scrollTo({ top, behavior: 'smooth' });
         }
-      }, 700);
+      }, 850);
     } else if (empty) {
-      setTimeout(() => empty.classList.add('is-visible'), 500);
+      setTimeout(() => {
+        empty.classList.add('is-visible');
+        if (!REDUCED) {
+          const top = empty.getBoundingClientRect().top + window.scrollY - 60;
+          window.scrollTo({ top, behavior: 'smooth' });
+        }
+      }, 600);
     }
   }
 
@@ -103,12 +110,10 @@
     }
   });
 
-  // accesibilidad: que la caja sea focusable
   box.setAttribute('tabindex', '0');
   box.setAttribute('role', 'button');
   box.setAttribute('aria-label', 'Abrir la caja y descubrir los mensajes');
 
-  // Touch: en táctil no hay mousemove, pero al primer tap la caja se centra
   if (matchMedia('(hover: none)').matches) {
     box.style.cursor = 'pointer';
   }

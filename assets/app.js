@@ -127,9 +127,13 @@
 
     const subEl = document.querySelector('[data-persona-sub]');
     if (subEl) {
-      subEl.textContent = p.mensajes.length
-        ? `${p.mensajes.length} ${p.mensajes.length === 1 ? 'mensaje te han dedicado' : 'mensajes te han dedicado'} tus compañeros. Toca la caja para descubrirlos.`
-        : `Tu caja se está preparando. Cuando estés listo/a, toca la caja.`;
+      if (p.mensajes.length === 0) {
+        subEl.textContent = 'Tu caja se está preparando. Cuando estés listo/a, toca la caja.';
+      } else if (p.mensajes.length === 1) {
+        subEl.textContent = 'Hay un mensaje esperándote dentro. Toca la caja para descubrirlo.';
+      } else {
+        subEl.textContent = `${p.mensajes.length} mensajes te han dedicado tus compañeros. Toca la caja para descubrirlos.`;
+      }
     }
 
     // Initials en la tapa
@@ -147,22 +151,42 @@
       // el empty state se mostrará desde box.js al abrir
     } else {
       if (empty) empty.remove();
+      const single = p.mensajes.length === 1;
+      if (single) list.classList.add('messages--single');
       const html = p.mensajes.map(m => {
-        const token = colorTokenForName(m.de);
-        const bubbleClass = bubbleClassForToken(token);
-        const initials = getInitials(m.de);
+        // Si el mensaje tiene "de" lo mostramos; si no, queda sin remitente.
+        if (m.de) {
+          const token = colorTokenForName(m.de);
+          const bubbleClass = bubbleClassForToken(token);
+          const initials = getInitials(m.de);
+          return `
+            <article class="message">
+              <div class="message__from">
+                <span class="message__from-bubble ${bubbleClass}" style="--p-color: var(${token});">${initials}</span>
+                <span>De ${m.alias || m.de}</span>
+              </div>
+              <p class="message__body">${m.texto}</p>
+            </article>
+          `;
+        }
         return `
-          <article class="message">
-            <div class="message__from">
-              <span class="message__from-bubble ${bubbleClass}" style="--p-color: var(${token});">${initials}</span>
-              <span>De ${m.alias || m.de}</span>
-            </div>
+          <article class="message message--solo">
+            <span class="message__eyebrow">Un mensaje para ti</span>
             <p class="message__body">${m.texto}</p>
+            <span class="message__signature">Con cariño, del equipo</span>
           </article>
         `;
       }).join('');
       if (list) list.innerHTML = html;
-      if (titleBar) titleBar.hidden = false;
+      if (titleBar) {
+        titleBar.hidden = false;
+        const titleText = titleBar.querySelector('.messages__title-text');
+        if (titleText) {
+          titleText.textContent = p.mensajes.length === 1
+            ? 'Un mensaje para ti'
+            : 'Mensajes para ti';
+        }
+      }
       if (countEl) {
         countEl.textContent = `${p.mensajes.length} ${p.mensajes.length === 1 ? 'mensaje' : 'mensajes'}`;
       }

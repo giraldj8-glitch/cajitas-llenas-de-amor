@@ -117,6 +117,20 @@ a { color: inherit; text-decoration: none; }
 
 .shell--narrow { max-width: 760px; }
 
+/* En páginas individuales (sin header) — más aire arriba */
+.scene--solo {
+  padding-top: clamp(40px, 7vw, 72px);
+  padding-bottom: clamp(40px, 6vw, 60px);
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+}
+
+.scene--solo > .shell {
+  padding-top: 0;
+  width: 100%;
+}
+
 .header {
   display: flex;
   align-items: center;
@@ -561,6 +575,63 @@ a { color: inherit; text-decoration: none; }
 
 .message__body::before { content: "“"; opacity: 0.4; margin-right: 2px; }
 .message__body::after  { content: "”"; opacity: 0.4; margin-left: 2px; }
+
+/* ---------- Mensaje único (caja con un solo mensaje) ----------------- */
+.messages--single {
+  display: block;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.messages--single .message--solo {
+  padding: 40px 44px 36px;
+  text-align: center;
+  background:
+    radial-gradient(80% 60% at 50% 0%, color-mix(in oklab, var(--p-color) 22%, transparent) 0%, transparent 70%),
+    linear-gradient(160deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 20px 60px -20px rgba(0,0,0,0.6);
+}
+
+.message--solo .message__eyebrow {
+  display: inline-block;
+  font-family: var(--f-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--p-color);
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--p-color) 14%, transparent);
+  border: 1px solid color-mix(in oklab, var(--p-color) 30%, transparent);
+  margin-bottom: 22px;
+}
+
+.message--solo .message__body {
+  font-size: clamp(20px, 2.4vw, 26px);
+  line-height: 1.45;
+  color: #fff;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.message--solo .message__body::before,
+.message--solo .message__body::after { display: none; }
+
+.message--solo .message__signature {
+  display: block;
+  margin-top: 26px;
+  font-family: var(--f-display);
+  font-style: italic;
+  font-size: 15px;
+  color: rgba(255,255,255,0.55);
+}
+
+.message--solo .message__signature::before {
+  content: "— ";
+}
 
 /* ---------- Empty state (caja sin mensajes) ----------------------------- */
 .empty {

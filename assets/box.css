@@ -1,14 +1,14 @@
 /* =========================================================================
    Cajitas llenas de amor — box.css
-   Caja 3D con CSS transforms: 6 caras, listón 3D cruzado y moño.
-   Sin dependencias externas.
+   Gift box 3D con esquinas redondeadas tipo "suitcase", listón cruzado
+   y moño prominente. Sin dependencias externas.
    ========================================================================= */
 
 :root {
-  --box-size: 260px;            /* tamaño del cubo en desktop */
+  --box-size: 230px;            /* arista del cubo */
   --box-half: calc(var(--box-size) / 2);
-  --box-pad: 22px;              /* alto / ancho de la cinta */
-  --box-radius: 18px;           /* radio de las esquinas */
+  --box-pad: 24px;              /* ancho de la cinta */
+  --box-radius: 32px;           /* bordes muy redondeados (suitcase) */
 }
 
 /* ---------- Escenario / suelo 3D ---------------------------------------- */
@@ -17,80 +17,76 @@
   display: grid;
   place-items: center;
   width: 100%;
-  height: clamp(420px, 70vh, 620px);
+  height: clamp(440px, 72vh, 640px);
   perspective: 1400px;
-  perspective-origin: 50% 35%;
+  perspective-origin: 50% 30%;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Suelo con líneas de perspectiva que dan profundidad */
+/* Suelo con líneas de perspectiva */
 .box-stage::before {
   content: "";
   position: absolute;
-  bottom: 8%;
+  bottom: 6%;
   left: 50%;
-  width: 70%;
-  max-width: 520px;
-  height: 80px;
-  transform: translateX(-50%) rotateX(70deg);
+  width: 75%;
+  max-width: 560px;
+  height: 90px;
+  transform: translateX(-50%) rotateX(72deg);
   transform-origin: 50% 0%;
   background:
-    linear-gradient(transparent 49%, rgba(255,255,255,0.06) 50%, transparent 51%) 0 0 / 100% 22px,
-    linear-gradient(90deg, transparent 49%, rgba(255,255,255,0.06) 50%, transparent 51%) 0 0 / 22px 100%,
+    linear-gradient(transparent 49%, rgba(255,255,255,0.07) 50%, transparent 51%) 0 0 / 100% 24px,
+    linear-gradient(90deg, transparent 49%, rgba(255,255,255,0.07) 50%, transparent 51%) 0 0 / 24px 100%,
     radial-gradient(ellipse at center, rgba(0, 8, 57, 0.6), transparent 70%);
   border-radius: 50%;
-  filter: blur(0.4px);
   z-index: 0;
   pointer-events: none;
-  opacity: 0.7;
+  opacity: 0.75;
 }
 
-/* Aura grande + sombra de contacto */
+/* Sombra de contacto grande */
 .box-stage::after {
   content: "";
   position: absolute;
-  bottom: 12%;
+  bottom: 10%;
   left: 50%;
   width: 70%;
-  max-width: 480px;
-  height: 56px;
+  max-width: 500px;
+  height: 60px;
   border-radius: 50%;
   background: radial-gradient(closest-side, var(--p-color), transparent 70%);
-  opacity: 0.55;
-  filter: blur(28px);
+  opacity: 0.5;
+  filter: blur(30px);
   transform: translateX(-50%);
   z-index: 0;
   pointer-events: none;
   transition: opacity var(--t-slow) var(--ease-out), filter var(--t-slow) var(--ease-out);
 }
 
-.box-stage.is-open::after {
-  opacity: 0.9;
-  filter: blur(36px);
-}
+.box-stage.is-open::after { opacity: 0.95; filter: blur(40px); }
 
-/* Halo superior suave */
+/* Halo superior */
 .box-stage > .glow {
   position: absolute;
-  top: 18%;
+  top: 16%;
   left: 50%;
-  width: 70%;
-  max-width: 460px;
-  height: 320px;
+  width: 75%;
+  max-width: 500px;
+  height: 340px;
   border-radius: 50%;
   background: radial-gradient(closest-side, var(--p-color), transparent 70%);
-  opacity: 0.16;
-  filter: blur(50px);
+  opacity: 0.18;
+  filter: blur(56px);
   transform: translateX(-50%);
   z-index: 0;
   pointer-events: none;
   transition: opacity var(--t-slow) var(--ease-out);
 }
 
-.box-stage.is-open > .glow { opacity: 0.28; }
+.box-stage.is-open > .glow { opacity: 0.32; }
 
-/* ---------- El cubo ----------------------------------------------------- */
+/* ---------- El cubo (forma suitcase) ------------------------------------ */
 .box {
   position: relative;
   width: var(--box-size);
@@ -102,7 +98,7 @@
   transition: transform 600ms var(--ease-out);
   will-change: transform;
   cursor: pointer;
-  animation: float 4.5s var(--ease-in-out) infinite;
+  animation: float 4.8s var(--ease-in-out) infinite;
   z-index: 1;
 }
 
@@ -110,7 +106,7 @@
 
 @keyframes float {
   0%, 100% { translate: 0 0; }
-  50%      { translate: 0 -16px; }
+  50%      { translate: 0 -18px; }
 }
 
 /* ---------- Caras (6 lados) --------------------------------------------- */
@@ -118,44 +114,53 @@
   position: absolute;
   inset: 0;
   border-radius: var(--box-radius);
-  background: var(--p-color);
+  background:
+    /* highlight glossy arriba */
+    radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.32) 0%, transparent 55%),
+    /* sombra interior abajo */
+    linear-gradient(180deg, var(--p-color) 0%, color-mix(in oklab, var(--p-color) 80%, #000 20%) 100%);
+  border: 1px solid rgba(255,255,255,0.14);
   box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.08),
-    inset 0 0 36px rgba(0,0,0,0.22);
-  /* La cinta se pinta con ::before (vertical) y ::after (horizontal).
-     El color de la cinta se basa en el acento suave. */
+    inset 0 1px 0 rgba(255,255,255,0.30),    /* highlight del borde superior */
+    inset 0 -2px 0 rgba(0,0,0,0.18),          /* sombra del borde inferior */
+    inset 0 0 50px rgba(0,0,0,0.12);
 }
 
+/* Cintas cruzadas: vertical y horizontal pintadas en cada cara */
 .face::before,
 .face::after {
   content: "";
   position: absolute;
-  background: linear-gradient(180deg, var(--p-soft), color-mix(in oklab, var(--p-soft) 65%, #000 35%));
+  background:
+    linear-gradient(90deg,
+      color-mix(in oklab, var(--p-soft) 50%, #000 50%) 0%,
+      var(--p-soft) 50%,
+      color-mix(in oklab, var(--p-soft) 50%, #000 50%) 100%);
   box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.18),
-    inset 0 -8px 16px rgba(0,0,0,0.25),
-    inset 0 8px 16px rgba(255,255,255,0.15);
+    inset 0 0 0 1px rgba(255,255,255,0.22),
+    inset 0 4px 6px rgba(255,255,255,0.20),
+    inset 0 -4px 6px rgba(0,0,0,0.30);
   pointer-events: none;
 }
 
-/* cinta vertical: banda centrada horizontalmente, a lo largo de la cara */
+/* Cinta vertical centrada */
 .face::before {
   top: 0;
   bottom: 0;
   left: 50%;
   width: var(--box-pad);
   transform: translateX(-50%);
-  border-radius: 2px;
+  border-radius: 1px;
 }
 
-/* cinta horizontal: banda centrada verticalmente, a lo ancho */
+/* Cinta horizontal centrada */
 .face::after {
   left: 0;
   right: 0;
   top: 50%;
   height: var(--box-pad);
   transform: translateY(-50%);
-  border-radius: 2px;
+  border-radius: 1px;
 }
 
 .face--front  { transform: translateZ(var(--box-half)); }
@@ -164,190 +169,202 @@
 .face--left   { transform: rotateY(-90deg) translateZ(var(--box-half)); }
 .face--bottom {
   transform: rotateX(-90deg) translateZ(var(--box-half));
-  background: color-mix(in oklab, var(--p-color) 55%, #000 45%);
+  background: color-mix(in oklab, var(--p-color) 50%, #000 50%);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
 }
 .face--bottom::before,
-.face--bottom::after { opacity: 0.4; }
+.face--bottom::after { opacity: 0.35; }
 
-/* ---------- Tapa con listón -------------------------------------------- */
+/* ---------- Tapa (sobresale como un gift box) -------------------------- */
 .lid {
   position: absolute;
-  inset: 0;
+  inset: -8px;   /* sobresale 8px por cada lado */
   transform-style: preserve-3d;
   transform-origin: 50% 0%;
-  /* La tapa está en el plano "top" del cubo. translateZ = mitad del cubo
-     para que se asiente sobre la cara superior. */
   transform: translateZ(var(--box-half)) rotateX(0deg);
   transition: transform 900ms var(--ease-spring);
   z-index: 3;
+  border-radius: calc(var(--box-radius) + 8px);
 }
 
-/* El TOP de la tapa: 3D, con bisel, cintas cruzadas y moño */
 .lid__top {
-  position: absolute;
-  inset: 0;
-  border-radius: var(--box-radius);
-  background:
-    radial-gradient(120% 80% at 50% 0%, rgba(255,255,255,0.20), transparent 60%),
-    linear-gradient(160deg, var(--p-color) 0%, color-mix(in oklab, var(--p-color) 75%, #000 25%) 100%);
-  border: 1px solid rgba(255,255,255,0.20);
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.10),
-    0 16px 30px -10px rgba(0,0,0,0.6);
-}
-
-/* Bisel de la tapa (el canto / grosor de la tapa) */
-.lid__top::before {
-  content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   background:
-    linear-gradient(to bottom, rgba(255,255,255,0.18) 0 4px, transparent 4px),
-    linear-gradient(to top, rgba(0,0,0,0.30) 0 6px, transparent 6px);
-  pointer-events: none;
+    radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.40) 0%, transparent 55%),
+    linear-gradient(180deg,
+      color-mix(in oklab, var(--p-color) 90%, #fff 0%) 0%,
+      var(--p-color) 35%,
+      color-mix(in oklab, var(--p-color) 75%, #000 25%) 100%);
+  border: 1px solid rgba(255,255,255,0.24);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.40),
+    inset 0 -2px 0 rgba(0,0,0,0.20),
+    0 18px 36px -10px rgba(0,0,0,0.55);
+  height: 64px; /* grosor de la tapa */
 }
 
-/* Cruz de cintas sobre la tapa (::after = cinta horizontal).
-   La cinta vertical se hace con .lid__ribbon-v en el HTML. */
-.lid__top::after {
+/* Bisel / canto frontal de la tapa */
+.lid__top::before {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
+  bottom: -1px;
+  height: 6px;
+  background: color-mix(in oklab, var(--p-color) 60%, #000 40%);
+  border-radius: 0 0 calc(var(--box-radius) + 8px) calc(var(--box-radius) + 8px);
+}
+
+/* Cinta horizontal sobre la tapa */
+.lid__top::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  right: -8px;
   top: 50%;
   height: var(--box-pad);
   transform: translateY(-50%);
-  background: linear-gradient(180deg, var(--p-soft), color-mix(in oklab, var(--p-soft) 60%, #000 40%));
-  border-radius: 2px;
+  background:
+    linear-gradient(90deg,
+      color-mix(in oklab, var(--p-soft) 50%, #000 50%) 0%,
+      var(--p-soft) 50%,
+      color-mix(in oklab, var(--p-soft) 50%, #000 50%) 100%);
   box-shadow:
     inset 0 0 0 1px rgba(255,255,255,0.22),
-    inset 0 -6px 12px rgba(0,0,0,0.30),
-    inset 0 6px 12px rgba(255,255,255,0.15);
+    inset 0 4px 6px rgba(255,255,255,0.20),
+    inset 0 -4px 6px rgba(0,0,0,0.30);
 }
 
-/* Cinta vertical sobre la tapa (cruz) */
+/* Cinta vertical sobre la tapa */
 .lid__ribbon-v {
   position: absolute;
-  top: 0;
-  bottom: 0;
+  top: -8px;
+  bottom: -1px;
   left: 50%;
   width: var(--box-pad);
   transform: translateX(-50%);
-  background: linear-gradient(180deg, var(--p-soft), color-mix(in oklab, var(--p-soft) 60%, #000 40%));
-  border-radius: 2px;
+  background:
+    linear-gradient(180deg,
+      color-mix(in oklab, var(--p-soft) 50%, #000 50%) 0%,
+      var(--p-soft) 50%,
+      color-mix(in oklab, var(--p-soft) 50%, #000 50%) 100%);
   box-shadow:
     inset 0 0 0 1px rgba(255,255,255,0.22),
-    inset -6px 0 12px rgba(0,0,0,0.30),
-    inset 6px 0 12px rgba(255,255,255,0.15);
+    inset 4px 0 6px rgba(255,255,255,0.20),
+    inset -4px 0 6px rgba(0,0,0,0.30);
   z-index: 2;
 }
 
-/* Initials en la esquina de la tapa */
 .lid__initials {
   position: absolute;
-  bottom: 14px;
+  bottom: 8px;
   right: 18px;
   font-family: var(--f-display);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
-  color: rgba(255,255,255,0.88);
+  color: rgba(255,255,255,0.78);
   letter-spacing: 0.06em;
   text-shadow: 0 1px 2px rgba(0,0,0,0.4);
   z-index: 1;
 }
 
-/* ---------- Moño (bow) ------------------------------------------------- */
+/* ---------- Moño (bow) grande y prominente ----------------------------- */
 .bow {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 120px;
-  height: 90px;
+  width: 160px;
+  height: 110px;
   transform: translate(-50%, -50%);
-  z-index: 4;
+  z-index: 5;
   pointer-events: none;
-  filter: drop-shadow(0 6px 10px rgba(0,0,0,0.45));
+  filter: drop-shadow(0 8px 12px rgba(0,0,0,0.45));
 }
 
 .bow__loop {
   position: absolute;
-  top: 0;
-  width: 44px;
-  height: 50px;
+  top: 6px;
+  width: 62px;
+  height: 64px;
   background:
-    radial-gradient(ellipse at 50% 60%, color-mix(in oklab, var(--p-soft) 80%, #fff 0%) 0%, var(--p-soft) 70%, color-mix(in oklab, var(--p-soft) 50%, #000 50%) 100%);
+    radial-gradient(ellipse at 50% 60%,
+      color-mix(in oklab, var(--p-soft) 90%, #fff 0%) 0%,
+      var(--p-soft) 70%,
+      color-mix(in oklab, var(--p-soft) 50%, #000 50%) 100%);
   border-radius: 50%;
   box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.35),
-    inset 4px 4px 10px rgba(255,255,255,0.30),
-    inset -6px -6px 14px rgba(0,0,0,0.30);
+    inset 0 0 0 2px rgba(255,255,255,0.35),
+    inset 6px 6px 14px rgba(255,255,255,0.30),
+    inset -8px -8px 18px rgba(0,0,0,0.30);
 }
 
-.bow__loop--left  { left: 4px;  transform: rotate(-12deg); }
-.bow__loop--right { right: 4px; transform: rotate( 12deg); }
+.bow__loop--left  { left: 6px;  transform: rotate(-15deg); }
+.bow__loop--right { right: 6px; transform: rotate( 15deg); }
 
 /* Brillo en cada lazo */
 .bow__loop::after {
   content: "";
   position: absolute;
-  top: 16%;
-  left: 24%;
-  width: 22%;
-  height: 18%;
-  background: rgba(255,255,255,0.55);
+  top: 18%;
+  left: 22%;
+  width: 26%;
+  height: 22%;
+  background: rgba(255,255,255,0.65);
   border-radius: 50%;
-  filter: blur(1px);
+  filter: blur(1.5px);
 }
 
 .bow__knot {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 26px;
-  height: 28px;
+  width: 36px;
+  height: 38px;
   transform: translate(-50%, -50%);
   background:
-    radial-gradient(circle at 35% 30%, rgba(255,255,255,0.6), transparent 50%),
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.65), transparent 50%),
     var(--p-soft);
-  border-radius: 6px;
+  border-radius: 8px;
   box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.35),
+    inset 0 0 0 1px rgba(255,255,255,0.40),
     inset 0 -4px 8px rgba(0,0,0,0.30);
   z-index: 2;
 }
 
-/* Colas del moño: cuelgan hacia abajo con forma de cinta curvada */
+/* Colas del moño */
 .bow__tail {
   position: absolute;
-  bottom: -16px;
-  width: 18px;
-  height: 38px;
-  background: linear-gradient(180deg, var(--p-soft), color-mix(in oklab, var(--p-soft) 55%, #000 45%));
-  border-radius: 2px 2px 14px 14px;
+  bottom: -22px;
+  width: 22px;
+  height: 50px;
+  background:
+    linear-gradient(180deg,
+      var(--p-soft) 0%,
+      color-mix(in oklab, var(--p-soft) 55%, #000 45%) 100%);
+  border-radius: 2px 2px 18px 18px;
   box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.18),
-    inset -2px 0 6px rgba(0,0,0,0.25);
+    inset 0 0 0 1px rgba(255,255,255,0.22),
+    inset -2px 0 6px rgba(0,0,0,0.28);
   z-index: 1;
 }
 
-.bow__tail--left  { left: calc(50% - 22px); transform: rotate(-12deg) skewY(-6deg); }
-.bow__tail--right { left: calc(50% + 4px);  transform: rotate( 12deg) skewY( 6deg); }
+.bow__tail--left  { left: calc(50% - 28px); transform: rotate(-14deg) skewY(-8deg); }
+.bow__tail--right { left: calc(50% + 6px);  transform: rotate( 14deg) skewY( 8deg); }
 
 /* ---------- Apertura de la tapa ---------------------------------------- */
 .box.is-open .lid {
-  transform: translateZ(var(--box-half)) rotateX(-150deg);
+  transform: translateZ(var(--box-half)) rotateX(-160deg);
 }
 
-/* Cuando abre, la caja se queda quieta (sin float) y ligeramente elevada */
 .box.is-open {
   animation: openGlow 1.4s var(--ease-in-out) forwards;
 }
 
 @keyframes openGlow {
   0%   { translate: 0 0; }
-  40%  { translate: 0 -10px; }
+  40%  { translate: 0 -12px; }
   100% { translate: 0 -4px; }
 }
 
@@ -357,28 +374,27 @@
 
 @keyframes lidShake {
   0%   { transform: translateZ(0) rotate(0); }
-  20%  { transform: translateZ(0) rotate(-2.5deg); }
-  40%  { transform: translateZ(0) rotate(2.5deg); }
-  60%  { transform: translateZ(0) rotate(-1.2deg); }
+  20%  { transform: translateZ(0) rotate(-3deg); }
+  40%  { transform: translateZ(0) rotate(3deg); }
+  60%  { transform: translateZ(0) rotate(-1.5deg); }
   100% { transform: translateZ(0) rotate(0); }
 }
 
-/* Pequeño "pop" del moño al abrir */
 .box.is-open .bow {
   animation: bowPop 1.1s var(--ease-spring);
 }
 
 @keyframes bowPop {
   0%   { scale: 1; }
-  35%  { scale: 1.18 rotate(0); }
-  60%  { scale: 0.95; }
+  35%  { scale: 1.22; }
+  60%  { scale: 0.94; }
   100% { scale: 1; }
 }
 
 /* ---------- CTA "Toca para abrir" -------------------------------------- */
 .box-cta {
   position: absolute;
-  top: 78%;
+  top: 105%;
   left: 50%;
   display: inline-flex;
   align-items: center;
@@ -395,7 +411,7 @@
   text-shadow: 0 1px 4px rgba(0,0,0,0.5);
   pointer-events: none;
   z-index: 5;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   transition: opacity var(--t-base) var(--ease-out), transform var(--t-base) var(--ease-out);
   white-space: nowrap;
 }
@@ -410,7 +426,10 @@
   animation: pulse 1.6s var(--ease-in-out) infinite;
 }
 
-.box.is-open .box-cta { opacity: 0; transform: translate(-50%, -50%) translateY(8px); }
+.box.is-open .box-cta {
+  opacity: 0;
+  transform: translateX(-50%) translateY(8px);
+}
 
 @keyframes pulse {
   0%, 100% { transform: scale(1); opacity: 1; }
@@ -428,25 +447,31 @@
 /* ---------- Responsive ------------------------------------------------- */
 @media (max-width: 720px) {
   :root {
-    --box-size: 200px;
-    --box-pad: 18px;
+    --box-size: 180px;
+    --box-pad: 20px;
+    --box-radius: 28px;
   }
-  .bow { width: 96px; height: 72px; }
-  .bow__loop { width: 36px; height: 40px; }
-  .bow__knot { width: 22px; height: 24px; }
-  .bow__tail { width: 14px; height: 30px; bottom: -12px; }
+  .lid { inset: -6px; border-radius: calc(var(--box-radius) + 6px); }
+  .lid__top { height: 52px; }
+  .bow { width: 120px; height: 86px; }
+  .bow__loop { width: 46px; height: 48px; }
+  .bow__knot { width: 28px; height: 30px; }
+  .bow__tail { width: 18px; height: 40px; bottom: -16px; }
 }
 
 @media (max-width: 420px) {
   :root {
-    --box-size: 170px;
-    --box-pad: 16px;
+    --box-size: 160px;
+    --box-pad: 18px;
+    --box-radius: 24px;
   }
-  .box-stage { height: clamp(360px, 70vh, 520px); }
-  .bow { width: 80px; height: 60px; }
-  .bow__loop { width: 30px; height: 32px; }
-  .bow__knot { width: 18px; height: 20px; }
-  .bow__tail { width: 12px; height: 24px; bottom: -8px; }
+  .box-stage { height: clamp(380px, 72vh, 540px); }
+  .lid { inset: -5px; border-radius: calc(var(--box-radius) + 5px); }
+  .lid__top { height: 46px; }
+  .bow { width: 100px; height: 72px; }
+  .bow__loop { width: 38px; height: 40px; }
+  .bow__knot { width: 24px; height: 26px; }
+  .bow__tail { width: 14px; height: 32px; bottom: -12px; }
 }
 
 /* ---------- Reduced motion --------------------------------------------- */

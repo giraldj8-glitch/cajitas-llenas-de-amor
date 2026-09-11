@@ -26,7 +26,11 @@ window.CAJITAS_DATA = {
       color: '#611ad8',
       colorSuave: '#345fea',
       saludo: 'Para Carlos Corredor',
-      mensajes: []
+      mensajes: [
+        {
+          texto: 'Te regalo este reconocimiento porque tu nobleza y caballerosidad transforman el ambiente. Eres la prueba diaria de que los valores impecables y una gran actitud son la mejor huella humana.'
+        }
+      ]
     },
     'santiago-daza': {
       slug: 'santiago-daza',
@@ -36,7 +40,11 @@ window.CAJITAS_DATA = {
       color: '#1bc5ff',
       colorSuave: '#32d894',
       saludo: 'Para Santiago Daza',
-      mensajes: []
+      mensajes: [
+        {
+          texto: 'Te regalo este reconocimiento porque detrás de tu sereno silencio habitan las ideas más brillantes; tu creatividad y agilidad son la solución justa cuando el camino se complica.'
+        }
+      ]
     },
     'andres-felipe': {
       slug: 'andres-felipe',
@@ -48,34 +56,7 @@ window.CAJITAS_DATA = {
       saludo: 'Para Pipe',
       mensajes: [
         {
-          de: 'Santiago Daza',
-          alias: 'Santi',
-          texto: 'Te regalo este reconocimiento porque detrás de tu sereno silencio habitan las ideas más brillantes; tu creatividad y agilidad son la solución justa cuando el camino se complica.'
-        },
-        {
-          de: 'Nelson Rodriguez',
-          alias: 'Nelson',
-          texto: 'Te regalo este reconocimiento porque tu silencio guarda una resiliencia admirable. Gracias por adaptarte, ser nuestro salvavidas en estos momentos clave en servicio técnico y demostrarnos que tu compromiso siempre encuentra la forma de sumar.'
-        },
-        {
-          de: 'Carlos Corredor',
-          alias: 'Carlos',
-          texto: 'Te regalo este reconocimiento porque tu nobleza y caballerosidad transforman el ambiente. Eres la prueba diaria de que los valores impecables y una gran actitud son la mejor huella humana.'
-        },
-        {
-          de: 'Luisa Pulido',
-          alias: 'Lu',
-          texto: 'Te regalo este reconocimiento porque siempre buscas el bienestar ajeno y, aun en las conversaciones más difíciles, tus palabras entregan la sabiduría y el equilibrio que todos necesitamos.'
-        },
-        {
-          de: 'Paula Vivas',
-          alias: 'Pau',
-          texto: 'Te regalo este reconocimiento porque tu curiosidad e innovación le dan vida a nuestras redes, combinando una estrategia brillante con la puntualidad y el compromiso de siempre.'
-        },
-        {
-          de: 'Daniela Vivas',
-          alias: 'Dani',
-          texto: 'Te regalo este reconocimiento porque tu liderazgo trasciende lo ordinario; gracias por defender con nobleza a tu gente, ir más allá de la estrategia y enseñarnos a ver luz y color donde otros ven dificultad.'
+          texto: 'Te regalo este reconocimiento porque en cada reto encuentras un motivo para aprender, y tu sentido de la responsabilidad y apoyo constante son el verdadero motor que impulsa a este equipo.'
         }
       ]
     },
@@ -87,7 +68,11 @@ window.CAJITAS_DATA = {
       color: '#345fea',
       colorSuave: '#611ad8',
       saludo: 'Para Daniela Vivas',
-      mensajes: []
+      mensajes: [
+        {
+          texto: 'Te regalo este reconocimiento porque tu liderazgo trasciende lo ordinario; gracias por defender con nobleza a tu gente, ir más allá de la estrategia y enseñarnos a ver luz y color donde otros ven dificultad.'
+        }
+      ]
     },
     'paula-vivas': {
       slug: 'paula-vivas',
@@ -97,7 +82,11 @@ window.CAJITAS_DATA = {
       color: '#611ad8',
       colorSuave: '#1bc5ff',
       saludo: 'Para Paula Vivas',
-      mensajes: []
+      mensajes: [
+        {
+          texto: 'Te regalo este reconocimiento porque tu curiosidad e innovación le dan vida a nuestras redes, combinando una estrategia brillante con la puntualidad y el compromiso de siempre.'
+        }
+      ]
     },
     'luisa-pulido': {
       slug: 'luisa-pulido',
@@ -107,7 +96,11 @@ window.CAJITAS_DATA = {
       color: '#1bc5ff',
       colorSuave: '#32d894',
       saludo: 'Para Luisa Pulido',
-      mensajes: []
+      mensajes: [
+        {
+          texto: 'Te regalo este reconocimiento porque siempre buscas el bienestar ajeno y, aun en las conversaciones más difíciles, tus palabras entregan la sabiduría y el equilibrio que todos necesitamos.'
+        }
+      ]
     },
     'nelson-rodriguez': {
       slug: 'nelson-rodriguez',
@@ -117,7 +110,11 @@ window.CAJITAS_DATA = {
       color: '#32d894',
       colorSuave: '#345fea',
       saludo: 'Para Nelson Rodriguez',
-      mensajes: []
+      mensajes: [
+        {
+          texto: 'Te regalo este reconocimiento porque tu silencio guarda una resiliencia admirable. Gracias por adaptarte, ser nuestro salvavidas en estos momentos clave en servicio técnico y demostrarnos que tu compromiso siempre encuentra la forma de sumar.'
+        }
+      ]
     }
   },
 

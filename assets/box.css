@@ -19,8 +19,12 @@
   height: clamp(440px, 72vh, 640px);
   perspective: 1400px;
   perspective-origin: 50% 30%;
+  transform-style: preserve-3d;  /* ponytail: faltaba — el contexto 3D
+                                    no se establecía y las caras se
+                                    superponían sobre el texto. */
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  margin: 24px 0;
 }
 
 .box-stage::before {
@@ -34,8 +38,8 @@
   height: 90px;
   border-radius: 50%;
   background:
-    linear-gradient(transparent 49%, rgba(255,255,255,0.07) 50%, transparent 51%) 0 0 / 100% 24px,
-    linear-gradient(90deg, transparent 49%, rgba(255,255,255,0.07) 50%, transparent 51%) 0 0 / 24px 100%,
+    linear-gradient(transparent 49%, rgba(255,255,255,0.10) 50%, transparent 51%) 0 0 / 100% 18px,
+    linear-gradient(90deg, transparent 49%, rgba(255,255,255,0.10) 50%, transparent 51%) 0 0 / 18px 100%,
     radial-gradient(ellipse at center, rgba(0, 8, 57, 0.6), transparent 70%);
   transform: translateX(-50%) rotateX(72deg);
   z-index: 0;
@@ -149,6 +153,8 @@
     inset 0 1px 0 rgba(255,255,255,0.30),
     inset 0 -2px 0 rgba(0,0,0,0.18),
     inset 0 0 50px rgba(0,0,0,0.12);
+  backface-visibility: hidden;  /* ponytail: evita caras superpuestas
+                                   al rotar (z-fighting) */
 }
 
 /* Cintas cruzadas (pintadas en cada cara) */
@@ -184,11 +190,18 @@
 .face--back   { transform: rotateY(180deg) translateZ(var(--half)); }
 .face--right  { transform: rotateY( 90deg) translateZ(var(--half)); }
 .face--left   { transform: rotateY(-90deg) translateZ(var(--half)); }
+.face--top {
+  transform: rotateX( 90deg) translateZ(var(--half));
+  background: color-mix(in oklab, var(--p-color) 75%, #000 25%);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+}
 .face--bottom {
   transform: rotateX(-90deg) translateZ(var(--half));
   background: color-mix(in oklab, var(--p-color) 50%, #000 50%);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
 }
+.face--top::before,
+.face--top::after,
 .face--bottom::before,
 .face--bottom::after { opacity: 0.35; }
 
@@ -198,7 +211,8 @@
   inset: 0;
   transform-style: preserve-3d;
   transform-origin: 50% 0%;
-  transform: translateZ(var(--half)) rotateX(0deg);
+  /* +2px para evitar z-fighting con .face--top del cubo */
+  transform: translateZ(calc(var(--half) + 2px)) rotateX(0deg);
   transition: transform 900ms var(--ease-spring);
   z-index: 3;
   border-radius: var(--r);
@@ -209,7 +223,7 @@
   inset: 0;
   border-radius: inherit;
   background:
-    radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.40) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.45) 0%, transparent 55%),
     linear-gradient(180deg,
       color-mix(in oklab, var(--p-color) 95%, #fff 5%) 0%,
       var(--p-color) 40%,
@@ -218,7 +232,8 @@
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,0.40),
     inset 0 -2px 0 rgba(0,0,0,0.20),
-    0 18px 36px -10px rgba(0,0,0,0.55);
+    0 18px 36px -10px rgba(0,0,0,0.55),
+    0 0 0 1px rgba(0,0,0,0.10);
 }
 
 /* Cruz de cintas sobre la tapa: horizontal (::after) y vertical (elemento HTML) */
@@ -379,7 +394,7 @@
 
 /* ---------- Apertura --------------------------------------------------- */
 .box.is-open .lid {
-  transform: translateZ(var(--half)) rotateX(-160deg);
+  transform: translateZ(calc(var(--half) + 2px)) rotateX(-160deg);
 }
 
 .box.is-open {

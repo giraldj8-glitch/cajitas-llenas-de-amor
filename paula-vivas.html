@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#000839" />
+  <title>Para ti · Cajitas llenas de amor</title>
+  <meta name="description" content="Tu caja de mensajes del equipo. Toca la caja para descubrir los cariños que te han dedicado." />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Tu caja de mensajes · Cajitas llenas de amor" />
+  <meta property="og:description" content="Toca la caja y descubre los mensajes que tus compañeros tienen para ti." />
+  <meta property="og:type" content="website" />
+
+  <!-- Tipografías -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+  />
+
+  <link rel="stylesheet" href="./assets/styles.css" />
+  <link rel="stylesheet" href="./assets/box.css" />
+</head>
+<body>
+  <main class="scene" data-persona="paula-vivas">
+    <div class="shell shell--narrow">
+      <header class="header">
+        <a class="back" href="./index.html" aria-label="Volver a todas las cajas">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          <span>Todas las cajas</span>
+        </a>
+        <a class="brand" href="./index.html" aria-label="Inicio">
+          <span class="brand__dot" aria-hidden="true"></span>
+          <span>Cajitas llenas de amor</span>
+        </a>
+      </header>
+
+      <section class="hero-person">
+        <p class="hero-person__greeting" data-persona-greeting>Para ti</p>
+        <h1 data-persona-name>Para <em>ti</em></h1>
+        <p class="hero-person__sub" data-persona-sub>Toca la caja para descubrir los mensajes que te han dedicado.</p>
+      </section>
+
+      <section class="box-stage" aria-label="Caja con mensajes">
+        <div class="box" role="button" tabindex="0" aria-label="Toca para abrir la caja">
+          <div class="face face--front"></div>
+          <div class="face face--back"></div>
+          <div class="face face--right"></div>
+          <div class="face face--left"></div>
+          <div class="face face--bottom"></div>
+
+          <div class="lid">
+            <div class="lid__top">
+              <span class="lid__bow" aria-hidden="true"></span>
+              <span class="lid__initials" data-persona-initials>YO</span>
+            </div>
+          </div>
+
+          <div class="box-cta">Toca para abrir</div>
+        </div>
+
+        <div class="hint" role="status" aria-live="polite">
+          <span class="hint__pulse" aria-hidden="true"></span>
+          <span>Toca la caja</span>
+        </div>
+      </section>
+
+      <section class="messages" data-persona-messages hidden-until-open>
+        <h2 class="messages__title" data-persona-messages-title hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          Mensajes para ti
+          <span class="messages__count" data-persona-messages-count></span>
+        </h2>
+      </section>
+
+      <section class="empty" data-persona-empty hidden-until-open>
+        <span class="empty__icon" aria-hidden="true">💌</span>
+        <h2>Tu caja se está llenando de cariño</h2>
+        <p>Pronto encontrarás aquí los mensajes que el equipo tiene para ti. Vuelve cuando recibas la notificación ✨</p>
+      </section>
+
+      <footer class="footer">
+        <span>Hecho con cariño · 2026</span>
+        <a class="footer__link" href="./index.html">
+          Ver todas las cajas
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14M13 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </footer>
+    </div>
+  </main>
+
+  <script src="./assets/data.js"></script>
+  <script src="./assets/app.js"></script>
+  <script src="./assets/confetti.js"></script>
+  <script src="./assets/box.js"></script>
+</body>
+</html>
